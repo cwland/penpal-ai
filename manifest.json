@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PenPal AI Writing Assistant",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Your words, polished. Grammar, style & tone correction powered by your choice of AI — right inside any text field.",
   "permissions": [
     "activeTab",

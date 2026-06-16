@@ -243,10 +243,10 @@ function setupInput() {
     }
   });
   document.getElementById("pp-settings-btn").addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "openSettings" });
+    chrome.runtime.openOptionsPage();
   });
   noKeyBanner.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "openSettings" });
+    chrome.runtime.openOptionsPage();
   });
 }
 
