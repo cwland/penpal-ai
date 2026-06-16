@@ -1422,20 +1422,33 @@
 
     <div class="model-reco model-reco-free">
       <div class="model-reco-head"><span class="model-reco-badge">FREE</span> The easiest way to get started</div>
-      <p><strong>Provider:</strong> OpenRouter &nbsp;·&nbsp; <strong>Model:</strong> Llama 3.1 8B <span class="kbd">free tier</span></p>
-      <p>This combination costs nothing, so it's a great way to try PenPal AI right away. Free-tier models like Llama 3.1 8B are useful for testing things out, but as a smaller model it can sometimes overlook part of a request — such as a specific tone, language, or formatting instruction — or produce less accurate rewrites than larger models. If results seem hit-or-miss, that's a limitation of the free model itself, not the extension.</p>
+      <p><strong>Provider:</strong> OpenRouter &nbsp;·&nbsp; <strong>Model:</strong> Llama 3.3 70B <span class="kbd">free tier</span></p>
+      <p>This combination costs nothing, so it's a great way to try PenPal AI right away. Free-tier models are useful for testing things out, but can sometimes overlook part of a request — such as a specific tone, language, or formatting instruction — or produce less accurate rewrites than larger paid models. If results seem hit-or-miss, that's a limitation of the free model itself, not the extension.</p>
     </div>
 
     <div class="model-reco model-reco-paid">
       <div class="model-reco-head"><span class="model-reco-badge">PAID</span> When you want more consistent quality</div>
       <p>Paid models typically cost a small fraction of a cent per rewrite and deliver noticeably more reliable, nuanced results — especially useful for professional or client-facing writing, longer passages, and less common tones or languages.</p>
       <ul>
-        <li><strong>Claude Sonnet</strong> — Anthropic's well-rounded mid-tier model. A strong everyday upgrade that follows tone and style instructions closely.</li>
-        <li><strong>Claude Opus</strong> — Anthropic's most capable model. Worth it for nuanced, high-stakes, or longer-form writing where quality matters most.</li>
-        <li><strong>GPT-4o</strong> — OpenAI's flagship all-rounder. A great alternative if you'd prefer to stay within the OpenAI family of models.</li>
+        <li><strong>Claude Sonnet 4.6</strong> — Anthropic's well-rounded mid-tier model. A strong everyday upgrade that follows tone and style instructions closely.</li>
+        <li><strong>Claude Opus 4.8</strong> — Anthropic's most capable model. Worth it for nuanced, high-stakes, or longer-form writing where quality matters most.</li>
+        <li><strong>GPT-4.1</strong> — OpenAI's current flagship. A great alternative if you'd prefer to stay within the OpenAI family of models.</li>
+        <li><strong>Gemini 3.5 Flash</strong> — Google's fastest frontier model. Excellent multilingual support at a competitive price.</li>
       </ul>
-      <p>All three are available through OpenRouter using the same API key as the free tier — just switch the model on the <strong>API &amp; Model</strong> tab whenever you'd like better results.</p>
+      <p>All are available through OpenRouter using the same API key as the free tier — just switch the model on the <strong>API &amp; Model</strong> tab whenever you'd like better results.</p>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Help &amp; Community</div>
+    <p>PenPal AI is an open-source project. All help, bug reports, and feature requests happen through GitHub.</p>
+    <ul>
+      <li><strong>Source code &amp; releases:</strong> <a href="https://github.com/cwland/penpal-ai" target="_blank">github.com/cwland/penpal-ai</a></li>
+      <li><strong>Found a bug?</strong> <a href="https://github.com/cwland/penpal-ai/issues/new?template=bug_report.md" target="_blank">Open a bug report</a> — include your browser version, which AI provider you're using, and steps to reproduce.</li>
+      <li><strong>Feature request?</strong> <a href="https://github.com/cwland/penpal-ai/issues/new?template=feature_request.md" target="_blank">Open a feature request</a> — describe what you'd like and why it'd be useful.</li>
+      <li><strong>Want to contribute?</strong> Fork the repo, make your changes, and open a pull request. Contributions are welcome!</li>
+      <li><strong>General questions:</strong> Use <a href="https://github.com/cwland/penpal-ai/discussions" target="_blank">GitHub Discussions</a> for anything that isn't a bug or feature request.</li>
+    </ul>
   </div>
 
 </div>
@@ -1846,7 +1859,7 @@
       </div>
       <div class="hint" style="margin-top:10px">The AI will output corrected or rewritten text in the selected language. Set to English to match the language of whatever you're editing.</div>
       <div class="lang-disclaimer">
-        ⚠ <strong>Note:</strong> Not all languages are supported by every model. Smaller and open-source models (Mistral 7B, Llama 8B, etc.) may produce lower-quality results or default back to English for less common languages. For best multilingual results, use <strong>GPT-4o</strong>, <strong>Claude Sonnet</strong>, or <strong>Gemini 1.5 Pro</strong>.
+        ⚠ <strong>Note:</strong> Not all languages are supported by every model. Smaller and open-source models (Mistral Small, Llama 8B, etc.) may produce lower-quality results or default back to English for less common languages. For best multilingual results, use <strong>GPT-4.1</strong>, <strong>Claude Sonnet 4.6</strong>, or <strong>Gemini 3.5 Flash</strong>.
       </div>
     </div>
   </div>
