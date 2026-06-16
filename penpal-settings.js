@@ -253,23 +253,31 @@ const PROVIDER_TEMPLATES = [
 ];
 
 // ── Models per provider ───────────────────────────────────────────────────
+// Slugs verified against live OpenRouter provider pages June 2026
 const PROVIDER_MODELS = {
   openrouter: [
-    { value: "openai/gpt-4.1",                       label: "GPT-4.1 — best OpenAI quality" },
-    { value: "openai/gpt-4.1-mini",                  label: "GPT-4.1 Mini — fast & cheap" },
-    { value: "anthropic/claude-sonnet-4-5",          label: "Claude Sonnet 4.5 — best Anthropic" },
-    { value: "anthropic/claude-haiku-4-5",           label: "Claude Haiku 4.5 — fast" },
-    { value: "google/gemini-2.5-flash",              label: "Gemini 2.5 Flash — fast" },
-    { value: "google/gemini-3.5-flash",              label: "Gemini 3.5 Flash — best Google" },
-    { value: "mistralai/mistral-large-3",            label: "Mistral Large 3 — best Mistral" },
-    { value: "mistralai/mistral-small-4",            label: "Mistral Small 4 — lightweight" },
-    { value: "meta-llama/llama-3.3-70b-instruct",   label: "Llama 3.3 70B — free tier" },
-    { value: "meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B — free tier" },
-    { value: "deepseek/deepseek-chat",               label: "DeepSeek V3 — best value" },
-    { value: "x-ai/grok-4",                         label: "Grok 4" },
-    { value: "cohere/command-r-plus",                label: "Cohere Command R+" },
+    // OpenAI via OpenRouter (verified: openrouter.ai/openai)
+    { value: "openai/gpt-4.1",                              label: "GPT-4.1 — best OpenAI quality" },
+    { value: "openai/gpt-4.1-mini",                         label: "GPT-4.1 Mini — fast & cheap" },
+    // Anthropic via OpenRouter (verified: openrouter.ai/anthropic)
+    { value: "anthropic/claude-sonnet-4.6",                 label: "Claude Sonnet 4.6 — best Anthropic" },
+    { value: "anthropic/claude-haiku-4.5",                  label: "Claude Haiku 4.5 — fast" },
+    // Google via OpenRouter (verified: openrouter.ai/google)
+    { value: "google/gemini-2.5-flash",                     label: "Gemini 2.5 Flash — fast" },
+    { value: "google/gemini-3.5-flash",                     label: "Gemini 3.5 Flash — best Google" },
+    // Mistral via OpenRouter (verified: openrouter.ai/mistralai)
+    { value: "mistralai/mistral-large-2512",                label: "Mistral Large 3 — best Mistral" },
+    { value: "mistralai/mistral-small-2603",                label: "Mistral Small 4 — lightweight" },
+    // Meta via OpenRouter (verified: openrouter.ai/meta-llama)
+    { value: "meta-llama/llama-3.3-70b-instruct:free",     label: "Llama 3.3 70B — free tier" },
+    { value: "meta-llama/llama-4-maverick:free",            label: "Llama 4 Maverick — free tier" },
+    // Others (verified: openrouter.ai/deepseek, openrouter.ai/x-ai, openrouter.ai/cohere)
+    { value: "deepseek/deepseek-chat-v3-0324",              label: "DeepSeek V3 — best value" },
+    { value: "x-ai/grok-4.3",                              label: "Grok 4.3 — xAI flagship" },
+    { value: "cohere/command-r-plus",                       label: "Cohere Command R+" },
   ],
   openai: [
+    // Slugs for direct OpenAI API (not OpenRouter)
     { value: "gpt-4.1",      label: "GPT-4.1 — best quality" },
     { value: "gpt-4.1-mini", label: "GPT-4.1 Mini — fast & cheap" },
     { value: "gpt-4.1-nano", label: "GPT-4.1 Nano — cheapest" },
@@ -277,30 +285,35 @@ const PROVIDER_MODELS = {
     { value: "gpt-4o-mini",  label: "GPT-4o Mini — still available via API" },
   ],
   anthropic: [
-    { value: "claude-haiku-4-5",   label: "Claude Haiku 4.5 — fast & cheap" },
-    { value: "claude-sonnet-4-6",  label: "Claude Sonnet 4.6 — balanced" },
-    { value: "claude-opus-4-8",    label: "Claude Opus 4.8 — most capable" },
+    // Slugs for direct Anthropic API (verified: platform.claude.com/docs/models)
+    { value: "claude-haiku-4-5",  label: "Claude Haiku 4.5 — fast & cheap" },
+    { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 — balanced" },
+    { value: "claude-opus-4-8",   label: "Claude Opus 4.8 — most capable" },
   ],
   google: [
-    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite — cheapest" },
-    { value: "gemini-2.5-flash",      label: "Gemini 2.5 Flash — fast" },
-    { value: "gemini-3.5-flash",      label: "Gemini 3.5 Flash — best quality" },
+    // Slugs for direct Google Gemini API (OpenAI-compat endpoint)
+    { value: "gemini-2.5-flash-lite-preview-06-17", label: "Gemini 2.5 Flash Lite — cheapest" },
+    { value: "gemini-2.5-flash",                    label: "Gemini 2.5 Flash — fast" },
+    { value: "gemini-3.5-flash",                    label: "Gemini 3.5 Flash — best quality" },
   ],
   mistral: [
-    { value: "mistral-small-latest",  label: "Mistral Small 4 — lightweight" },
-    { value: "mistral-large-latest",  label: "Mistral Large 3 — best quality" },
+    // Slugs for direct Mistral API (verified: docs.mistral.ai)
+    { value: "mistral-small-latest", label: "Mistral Small 4 — lightweight" },
+    { value: "mistral-large-latest", label: "Mistral Large 3 — best quality" },
   ],
   meta: [
-    { value: "meta-llama/llama-3.3-70b-instruct",          label: "Llama 3.3 70B (via OpenRouter)" },
-    { value: "meta-llama/llama-4-scout-17b-16e-instruct",  label: "Llama 4 Scout (via OpenRouter)" },
-    { value: "meta-llama/llama-4-maverick-17b-128e-instruct", label: "Llama 4 Maverick (via OpenRouter)" },
+    // Meta models via OpenRouter (verified: openrouter.ai/meta-llama)
+    { value: "meta-llama/llama-4-maverick:free",            label: "Llama 4 Maverick — free tier" },
+    { value: "meta-llama/llama-4-scout:free",               label: "Llama 4 Scout — free tier" },
+    { value: "meta-llama/llama-3.3-70b-instruct:free",     label: "Llama 3.3 70B — free tier" },
   ],
   groq: [
-    { value: "llama-3.1-8b-instant",                       label: "Llama 3.1 8B Instant — fastest" },
-    { value: "llama-3.3-70b-versatile",                    label: "Llama 3.3 70B Versatile — best quality" },
-    { value: "meta-llama/llama-4-scout-17b-16e-instruct",  label: "Llama 4 Scout" },
-    { value: "openai/gpt-oss-20b",                         label: "GPT-OSS 20B — OpenAI open-source" },
-    { value: "qwen/qwen3-32b",                             label: "Qwen3 32B" },
+    // Slugs verified: console.groq.com/docs/models
+    { value: "llama-3.1-8b-instant",                      label: "Llama 3.1 8B Instant — fastest" },
+    { value: "llama-3.3-70b-versatile",                   label: "Llama 3.3 70B Versatile — best quality" },
+    { value: "meta-llama/llama-4-scout-17b-16e-instruct", label: "Llama 4 Scout" },
+    { value: "openai/gpt-oss-20b",                        label: "GPT-OSS 20B — OpenAI open-source" },
+    { value: "qwen/qwen3-32b",                            label: "Qwen3 32B" },
   ],
   cohere: [
     { value: "command-r-plus", label: "Command R+ — best quality" },
@@ -317,21 +330,24 @@ const PROVIDER_MODELS = {
     { value: "accounts/fireworks/models/deepseek-v3",             label: "DeepSeek V3" },
   ],
   deepseek: [
+    // Slugs verified: platform.deepseek.com/api-docs
     { value: "deepseek-chat",     label: "DeepSeek V3 — best value" },
     { value: "deepseek-reasoner", label: "DeepSeek R1 — reasoning" },
   ],
   xai: [
+    // Slugs verified: openrouter.ai/x-ai
     { value: "grok-4",      label: "Grok 4 — most capable" },
-    { value: "grok-4-fast", label: "Grok 4 Fast — balanced speed" },
+    { value: "grok-4.3",    label: "Grok 4.3 — fast & reliable" },
+    { value: "grok-4.1-fast", label: "Grok 4.1 Fast — agentic tool calling" },
   ]
 };
 
 // ── Model recommendations per provider ────────────────────────────────────
 const MODEL_RECOMMENDATIONS = {
   openrouter: [
-    { badge: "best",  label: "Best for writing", model: "anthropic/claude-sonnet-4-5",          note: "Claude Sonnet 4.5 — nuanced, natural prose" },
-    { badge: "fast",  label: "Fast & capable",   model: "openai/gpt-4.1-mini",                  note: "GPT-4.1 Mini — great balance of speed and quality" },
-    { badge: "free",  label: "Free tier",        model: "meta-llama/llama-3.1-8b-instruct:free", note: "Llama 3.1 8B — no cost, surprisingly good" },
+    { badge: "best",  label: "Best for writing", model: "anthropic/claude-sonnet-4.6",           note: "Claude Sonnet 4.6 — nuanced, natural prose" },
+    { badge: "fast",  label: "Fast & capable",   model: "openai/gpt-4.1-mini",                   note: "GPT-4.1 Mini — great balance of speed and quality" },
+    { badge: "free",  label: "Free tier",        model: "meta-llama/llama-3.3-70b-instruct:free", note: "Llama 3.3 70B — no cost, strong quality" },
   ],
   openai: [
     { badge: "best",  label: "Best for writing", model: "gpt-4.1",      note: "GPT-4.1 — richest vocabulary, best at matching tone" },
@@ -342,16 +358,16 @@ const MODEL_RECOMMENDATIONS = {
     { badge: "fast",  label: "Fast & cheap",     model: "claude-haiku-4-5",  note: "Claude Haiku 4.5 — great for quick grammar fixes" },
   ],
   google: [
-    { badge: "best",  label: "Best quality", model: "gemini-3.5-flash",      note: "Gemini 3.5 Flash — Google's strongest model for writing" },
-    { badge: "value", label: "Best value",   model: "gemini-2.5-flash",       note: "Gemini 2.5 Flash — fast and reliable" },
+    { badge: "best",  label: "Best quality", model: "gemini-3.5-flash", note: "Gemini 3.5 Flash — Google's strongest model for writing" },
+    { badge: "value", label: "Best value",   model: "gemini-2.5-flash", note: "Gemini 2.5 Flash — fast and reliable" },
   ],
   mistral: [
     { badge: "best",  label: "Best for writing", model: "mistral-large-latest", note: "Mistral Large 3 — best prose quality in the Mistral family" },
     { badge: "value", label: "Best value",       model: "mistral-small-latest", note: "Mistral Small 4 — lightweight and capable" },
   ],
   meta: [
-    { badge: "best",  label: "Best quality", model: "meta-llama/llama-4-maverick-17b-128e-instruct", note: "Llama 4 Maverick — best open-source writing quality" },
-    { badge: "free",  label: "Free tier",    model: "meta-llama/llama-3.3-70b-instruct",             note: "Llama 3.3 70B — free via OpenRouter" },
+    { badge: "best",  label: "Best quality", model: "meta-llama/llama-4-maverick:free", note: "Llama 4 Maverick — best open-source writing quality" },
+    { badge: "free",  label: "Free tier",    model: "meta-llama/llama-4-scout:free",    note: "Llama 4 Scout — free via OpenRouter" },
   ],
   groq: [
     { badge: "best",  label: "Best quality", model: "llama-3.3-70b-versatile", note: "Llama 3.3 70B — best writing quality on Groq" },
@@ -375,7 +391,7 @@ const MODEL_RECOMMENDATIONS = {
   ],
   xai: [
     { badge: "best",  label: "Best available", model: "grok-4",      note: "Grok 4 — most capable xAI model" },
-    { badge: "fast",  label: "Faster option",  model: "grok-4-fast", note: "Grok 4 Fast — better balance of speed and quality" },
+    { badge: "fast",  label: "Faster option",  model: "grok-4.1-fast", note: "Grok 4.1 Fast — great for agentic tool use" },
   ],
 };
 
