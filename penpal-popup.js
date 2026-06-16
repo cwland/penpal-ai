@@ -85,11 +85,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ── No-key banner ────────────────────────────────────────────────────────
   // Custom providers (e.g. local servers) often don't need a key — never warn for those.
-  if (!settings.apiKey && !settings.isCustomProvider) {
-    document.getElementById("pp-no-key").style.display = "block";
-  }
-  document.getElementById("pp-no-key").addEventListener("click", () => {
+  const noKeyBanner = document.getElementById("pp-no-key");
+  const refreshNoKeyBanner = (s) => {
+    noKeyBanner.style.display = (!s.apiKey && !s.isCustomProvider) ? "block" : "none";
+  };
+  refreshNoKeyBanner(settings);
+  noKeyBanner.addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
+  });
+
+  // Keep banner in sync if the user saves a key while this popup is open
+  // (e.g. in the standalone pop-out window or after opening settings from here).
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "sync") return;
+    if ("apiKeys" in changes || "provider" in changes || "customProviders" in changes) {
+      getSettings().then(refreshNoKeyBanner);
+    }
   });
 
   // ── Settings button ──────────────────────────────────────────────────────

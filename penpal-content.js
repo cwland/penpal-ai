@@ -494,7 +494,7 @@ function closePopup() {
 
 // ── AI Call ───────────────────────────────────────────────────────────────────
 
-async function runAI(text, settings) {
+async function runAI(text, _settingsAtOpen) {
   if (!popup) return;
 
   popup.querySelector("#aw-loading").style.display     = "flex";
@@ -503,6 +503,10 @@ async function runAI(text, settings) {
   popup.querySelector("#aw-footer-right").style.display = "none";
 
   try {
+    // Always re-fetch settings from storage so that an API key saved after this
+    // popup first opened (or added while the popup is still on screen) is picked
+    // up immediately — no page refresh required.
+    const settings = await getSettings();
     if (!settings.apiKey && !settings.isCustomProvider) throw new Error("No API key set. Click ⚙ Settings to add one.");
 
     const result = await new Promise((resolve, reject) => {
