@@ -113,52 +113,64 @@ function sortTones(tones) {
 const PROVIDER_INFO = {
   openrouter: {
     name: "OpenRouter",
-    desc: "One API key for <strong>all providers</strong> — OpenAI, Anthropic, Google, Mistral, Meta, and more. Many free-tier models available.",
-    url: "https://openrouter.ai", urlLabel: "Get key at openrouter.ai", keyPrefix: "sk-or-"
+    desc: "One API key for <strong>all providers</strong> — OpenAI, Anthropic, Google, Mistral, Meta, Qwen, and more. Includes a free-tier router.",
+    url: "https://openrouter.ai", urlLabel: "Get key at openrouter.ai",
+    modelsUrl: "https://openrouter.ai/models", modelsUrlLabel: "Browse all OpenRouter models →"
   },
   openai: {
-    name: "OpenAI", desc: "GPT-4o, GPT-4o Mini, o1 reasoning models. Pay-per-use.",
-    url: "https://platform.openai.com/api-keys", urlLabel: "platform.openai.com", keyPrefix: "sk-"
+    name: "OpenAI", desc: "GPT-4.1, GPT-4.1 Mini, GPT-4.1 Nano, GPT-4o. Pay-per-use.",
+    url: "https://platform.openai.com/api-keys", urlLabel: "platform.openai.com",
+    modelsUrl: "https://platform.openai.com/docs/models", modelsUrlLabel: "Browse all OpenAI models →"
   },
   anthropic: {
-    name: "Anthropic", desc: "Claude Haiku, Sonnet, and Opus. Best for nuanced writing and long-form content.",
-    url: "https://console.anthropic.com", urlLabel: "console.anthropic.com", keyPrefix: "sk-ant-"
+    name: "Anthropic", desc: "Claude Haiku 4.5, Sonnet 4.6, and Opus 4.8. Best for nuanced writing and long-form content.",
+    url: "https://console.anthropic.com", urlLabel: "console.anthropic.com",
+    modelsUrl: "https://platform.claude.com/docs/en/about-claude/models/overview", modelsUrlLabel: "Browse all Anthropic models →"
   },
   google: {
-    name: "Google Gemini", desc: "Gemini 1.5 Flash (very fast, free tier), Gemini 1.5 Pro, Gemini 2.0 Flash.",
-    url: "https://aistudio.google.com/app/apikey", urlLabel: "aistudio.google.com", keyPrefix: "AIza"
+    name: "Google Gemini", desc: "Gemini 2.5 Flash Lite (cheapest), Gemini 2.5 Flash, Gemini 3.5 Flash (best quality).",
+    url: "https://aistudio.google.com/app/apikey", urlLabel: "aistudio.google.com",
+    modelsUrl: "https://ai.google.dev/gemini-api/docs/models", modelsUrlLabel: "Browse all Gemini models →"
   },
   mistral: {
-    name: "Mistral AI", desc: "European AI — Mistral Small/Medium/Large + open-weight Mistral 7B and Mixtral 8x7B.",
-    url: "https://console.mistral.ai", urlLabel: "console.mistral.ai", keyPrefix: ""
+    name: "Mistral AI", desc: "European AI — Mistral Small 4 and Large 3, plus open-weight Ministral models.",
+    url: "https://console.mistral.ai", urlLabel: "console.mistral.ai",
+    modelsUrl: "https://docs.mistral.ai/getting-started/models/models_overview/", modelsUrlLabel: "Browse all Mistral models →"
   },
   meta: {
-    name: "Meta / Llama", desc: "Open-weight Llama 3.x models via Together AI, Groq, Fireworks, or OpenRouter.",
-    url: "https://openrouter.ai", urlLabel: "Use via OpenRouter (recommended)", keyPrefix: ""
+    name: "Meta / Llama", desc: "Open-weight Llama 4 models via Together AI, Groq, Fireworks, or OpenRouter.",
+    url: "https://openrouter.ai", urlLabel: "Use via OpenRouter (recommended)",
+    modelsUrl: "https://openrouter.ai/meta-llama", modelsUrlLabel: "Browse all Meta/Llama models →"
   },
   groq: {
-    name: "Groq", desc: "Blazing-fast inference for Llama, Mixtral, and Gemma models. Free tier available.",
-    url: "https://console.groq.com/keys", urlLabel: "console.groq.com", keyPrefix: "gsk_"
+    name: "Groq", desc: "Blazing-fast inference for Llama, Qwen, and GPT-OSS models. Free tier available.",
+    url: "https://console.groq.com/keys", urlLabel: "console.groq.com",
+    modelsUrl: "https://console.groq.com/docs/models", modelsUrlLabel: "Browse all Groq models →"
   },
   cohere: {
     name: "Cohere", desc: "Command R+ is excellent for summarization and business writing. Free trial.",
-    url: "https://dashboard.cohere.com/api-keys", urlLabel: "dashboard.cohere.com", keyPrefix: ""
+    url: "https://dashboard.cohere.com/api-keys", urlLabel: "dashboard.cohere.com",
+    modelsUrl: "https://docs.cohere.com/docs/models", modelsUrlLabel: "Browse all Cohere models →"
   },
   together: {
-    name: "Together AI", desc: "Open-source model hosting — Llama, Mixtral, and more. Free $25 credit.",
-    url: "https://api.together.xyz/settings/api-keys", urlLabel: "api.together.xyz", keyPrefix: ""
+    name: "Together AI", desc: "Open-source model hosting — Llama, DeepSeek, and more. Free $25 credit.",
+    url: "https://api.together.xyz/settings/api-keys", urlLabel: "api.together.xyz",
+    modelsUrl: "https://www.together.ai/models", modelsUrlLabel: "Browse all Together AI models →"
   },
   fireworks: {
-    name: "Fireworks AI", desc: "Fast open-model inference. Llama 3.1, Mixtral. Free tier, then pay-per-use.",
-    url: "https://fireworks.ai/account/api-keys", urlLabel: "fireworks.ai", keyPrefix: "fw_"
+    name: "Fireworks AI", desc: "Fast open-model inference. Llama, DeepSeek. Free tier, then pay-per-use.",
+    url: "https://fireworks.ai/account/api-keys", urlLabel: "fireworks.ai",
+    modelsUrl: "https://fireworks.ai/models", modelsUrlLabel: "Browse all Fireworks models →"
   },
   deepseek: {
     name: "DeepSeek", desc: "DeepSeek V3 (Chat) and R1 (Reasoner). Very affordable, strong writing quality.",
-    url: "https://platform.deepseek.com/api_keys", urlLabel: "platform.deepseek.com", keyPrefix: "sk-"
+    url: "https://platform.deepseek.com/api_keys", urlLabel: "platform.deepseek.com",
+    modelsUrl: "https://api-docs.deepseek.com/quick_start/pricing", modelsUrlLabel: "Browse all DeepSeek models →"
   },
   xai: {
-    name: "xAI / Grok", desc: "Grok models from xAI. Fast and capable.",
-    url: "https://console.x.ai", urlLabel: "console.x.ai", keyPrefix: "xai-"
+    name: "xAI / Grok", desc: "Grok 4 and Grok 4.3. Fast and capable, strong tool use.",
+    url: "https://console.x.ai", urlLabel: "console.x.ai",
+    modelsUrl: "https://docs.x.ai/docs/models", modelsUrlLabel: "Browse all xAI models →"
   }
 };
 
@@ -253,28 +265,30 @@ const PROVIDER_TEMPLATES = [
 ];
 
 // ── Models per provider ───────────────────────────────────────────────────
-// Slugs verified against live OpenRouter provider pages June 2026
 const PROVIDER_MODELS = {
   openrouter: [
-    // OpenAI via OpenRouter (verified: openrouter.ai/openai)
-    { value: "openai/gpt-4.1",                              label: "GPT-4.1 — best OpenAI quality" },
-    { value: "openai/gpt-4.1-mini",                         label: "GPT-4.1 Mini — fast & cheap" },
-    // Anthropic via OpenRouter (verified: openrouter.ai/anthropic)
-    { value: "anthropic/claude-sonnet-4.6",                 label: "Claude Sonnet 4.6 — best Anthropic" },
-    { value: "anthropic/claude-haiku-4.5",                  label: "Claude Haiku 4.5 — fast" },
-    // Google via OpenRouter (verified: openrouter.ai/google)
-    { value: "google/gemini-2.5-flash",                     label: "Gemini 2.5 Flash — fast" },
-    { value: "google/gemini-3.5-flash",                     label: "Gemini 3.5 Flash — best Google" },
-    // Mistral via OpenRouter (verified: openrouter.ai/mistralai)
-    { value: "mistralai/mistral-large-2512",                label: "Mistral Large 3 — best Mistral" },
-    { value: "mistralai/mistral-small-2603",                label: "Mistral Small 4 — lightweight" },
-    // Meta via OpenRouter (verified: openrouter.ai/meta-llama)
-    { value: "meta-llama/llama-3.3-70b-instruct:free",     label: "Llama 3.3 70B — free tier" },
-    { value: "meta-llama/llama-4-maverick:free",            label: "Llama 4 Maverick — free tier" },
-    // Others (verified: openrouter.ai/deepseek, openrouter.ai/x-ai, openrouter.ai/cohere)
-    { value: "deepseek/deepseek-chat-v3-0324",              label: "DeepSeek V3 — best value" },
-    { value: "x-ai/grok-4.3",                              label: "Grok 4.3 — xAI flagship" },
-    { value: "cohere/command-r-plus",                       label: "Cohere Command R+" },
+    // OpenAI via OpenRouter — mini/nano confirmed live; plain gpt-4.1 omitted (failed live test)
+    { value: "openai/gpt-4.1-mini",          label: "GPT-4.1 Mini — fast & cheap" },
+    { value: "openai/gpt-4.1-nano",          label: "GPT-4.1 Nano — fastest & cheapest" },
+    // Anthropic via OpenRouter — confirmed working
+    { value: "anthropic/claude-sonnet-4.6",  label: "Claude Sonnet 4.6 — best Anthropic" },
+    { value: "anthropic/claude-haiku-4.5",   label: "Claude Haiku 4.5 — fast & cheap" },
+    // Google via OpenRouter — confirmed working
+    { value: "google/gemini-2.5-flash",      label: "Gemini 2.5 Flash — fast" },
+    { value: "google/gemini-3.5-flash",      label: "Gemini 3.5 Flash — best Google" },
+    // Mistral via OpenRouter — confirmed working
+    { value: "mistralai/mistral-large-2512", label: "Mistral Large 3 — best Mistral" },
+    { value: "mistralai/mistral-small-2603", label: "Mistral Small 4 — lightweight" },
+    // Qwen via OpenRouter — confirmed live
+    { value: "qwen/qwen3.6-flash",           label: "Qwen3.6 Flash — fast & very cheap" },
+    // DeepSeek via OpenRouter — confirmed working
+    { value: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3 — best value" },
+    // xAI via OpenRouter — confirmed working
+    { value: "x-ai/grok-4.3",               label: "Grok 4.3 — xAI flagship" },
+    // Meta via OpenRouter — paid
+    { value: "meta-llama/llama-4-maverick",              label: "Llama 4 Maverick — paid" },
+    // OpenRouter's free router — auto-picks best available free model
+    { value: "openrouter/free",                          label: "Free Models Router — auto-picks best free model" },
   ],
   openai: [
     // Slugs for direct OpenAI API (not OpenRouter)
@@ -303,9 +317,8 @@ const PROVIDER_MODELS = {
   ],
   meta: [
     // Meta models via OpenRouter (verified: openrouter.ai/meta-llama)
-    { value: "meta-llama/llama-4-maverick:free",            label: "Llama 4 Maverick — free tier" },
-    { value: "meta-llama/llama-4-scout:free",               label: "Llama 4 Scout — free tier" },
-    { value: "meta-llama/llama-3.3-70b-instruct:free",     label: "Llama 3.3 70B — free tier" },
+    { value: "meta-llama/llama-4-maverick",                 label: "Llama 4 Maverick — paid" },
+    { value: "meta-llama/llama-3.3-70b-instruct:free",     label: "Llama 3.3 70B — free (capacity limited)" },
   ],
   groq: [
     // Slugs verified: console.groq.com/docs/models
@@ -345,9 +358,9 @@ const PROVIDER_MODELS = {
 // ── Model recommendations per provider ────────────────────────────────────
 const MODEL_RECOMMENDATIONS = {
   openrouter: [
-    { badge: "best",  label: "Best for writing", model: "anthropic/claude-sonnet-4.6",           note: "Claude Sonnet 4.6 — nuanced, natural prose" },
-    { badge: "fast",  label: "Fast & capable",   model: "openai/gpt-4.1-mini",                   note: "GPT-4.1 Mini — great balance of speed and quality" },
-    { badge: "free",  label: "Free tier",        model: "meta-llama/llama-3.3-70b-instruct:free", note: "Llama 3.3 70B — no cost, strong quality" },
+    { badge: "best",  label: "Best for writing", model: "anthropic/claude-sonnet-4.6",   note: "Claude Sonnet 4.6 — nuanced, natural prose" },
+    { badge: "fast",  label: "Fast & cheap",     model: "qwen/qwen3.6-flash",            note: "Qwen3.6 Flash — very low cost with solid quality" },
+    { badge: "free",  label: "Free tier",        model: "openrouter/free",               note: "Free Models Router — automatically picks the best available free model. Quality varies but it's a great way to get started at no cost." },
   ],
   openai: [
     { badge: "best",  label: "Best for writing", model: "gpt-4.1",      note: "GPT-4.1 — richest vocabulary, best at matching tone" },
@@ -366,8 +379,8 @@ const MODEL_RECOMMENDATIONS = {
     { badge: "value", label: "Best value",       model: "mistral-small-latest", note: "Mistral Small 4 — lightweight and capable" },
   ],
   meta: [
-    { badge: "best",  label: "Best quality", model: "meta-llama/llama-4-maverick:free", note: "Llama 4 Maverick — best open-source writing quality" },
-    { badge: "free",  label: "Free tier",    model: "meta-llama/llama-4-scout:free",    note: "Llama 4 Scout — free via OpenRouter" },
+    { badge: "best",  label: "Best quality", model: "meta-llama/llama-4-maverick",              note: "Llama 4 Maverick — best open-source writing quality" },
+    { badge: "free",  label: "Free tier",    model: "meta-llama/llama-3.3-70b-instruct:free",   note: "Llama 3.3 70B — free via OpenRouter, subject to capacity limits" },
   ],
   groq: [
     { badge: "best",  label: "Best quality", model: "llama-3.3-70b-versatile", note: "Llama 3.3 70B — best writing quality on Groq" },
@@ -390,7 +403,7 @@ const MODEL_RECOMMENDATIONS = {
     { badge: "best",  label: "Most capable", model: "deepseek-reasoner", note: "DeepSeek R1 — great for complex rewrites" },
   ],
   xai: [
-    { badge: "best",  label: "Best available", model: "grok-4",      note: "Grok 4 — most capable xAI model" },
+    { badge: "best",  label: "Best available", model: "grok-4",        note: "Grok 4 — most capable xAI model" },
     { badge: "fast",  label: "Faster option",  model: "grok-4.1-fast", note: "Grok 4.1 Fast — great for agentic tool use" },
   ],
 };
@@ -1123,7 +1136,7 @@ function updateProviderInfo(provider) {
   el.innerHTML = `
     <strong>${info.name}</strong> — ${info.desc}
     ${info.url ? `<br><a href="${info.url}" target="_blank">→ ${info.urlLabel}</a>` : ""}
-    ${info.keyPrefix ? `<br><span style="color:#4b5563">Key format: <code style="color:#9ca3af">${info.keyPrefix}…</code></span>` : ""}
+    ${info.modelsUrl ? `<br><a href="${info.modelsUrl}" target="_blank">${info.modelsUrlLabel}</a>` : ""}
   `;
 
   document.querySelectorAll(".active-provider-label").forEach(span => span.textContent = info.name);

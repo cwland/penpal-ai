@@ -199,7 +199,29 @@ async function callAIAPI(text, settings) {
     ? (data.content?.[0]?.text || "")
     : (data.choices?.[0]?.message?.content || "");
 
-  return stripCommentary(raw);
+  return stripCommentary(stripThinkTags(raw));
+}
+
+/**
+ * Strip <think>...</think> reasoning blocks some open-weight reasoning
+ * models (e.g. Qwen3, DeepSeek R1 when self-hosted) embed directly in the
+ * content field instead of a separate API field. Most providers keep
+ * reasoning out of `content` entirely, so this is a no-op for them — it
+ * only fires when the tags are actually present.
+ */
+function stripThinkTags(text) {
+  if (!text) return text;
+
+  // Standard <think>...</think> (case-insensitive, multiline reasoning)
+  let result = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
+
+  // Some local servers (e.g. older Ollama builds) emit an unclosed
+  // <think> tag if the model's reasoning got cut off mid-stream — in
+  // that case there's no real answer left, so strip everything from
+  // the tag onward rather than leaving a dangling fragment.
+  result = result.replace(/<think>[\s\S]*$/i, "");
+
+  return result.trim();
 }
 
 /**
