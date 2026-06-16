@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PenPal AI Writing Assistant — Settings</title>
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       THEME SYSTEM — light default, dark via media query
+       All hardcoded colors below are mapped to these vars.
+       ═══════════════════════════════════════════════════════ */
+    :root {
+      color-scheme: light dark;
+
+      /* Page */
+      --bg-page:        #f5f4f8;
+      --bg-header:      linear-gradient(180deg, #f0eef8 0%, #f5f4f8 100%);
+      --border-header:  #e0dce8;
+
+      /* Cards & surfaces */
+      --bg-card:        #ffffff;
+      --border-card:    #e5e0ef;
+      --bg-input:       #f8f7fc;
+      --border-input:   #d4cedf;
+      --bg-input-btn:   #f8f7fc;
+
+      /* Tab bar */
+      --bg-tab-active:  #f5f4f8;
+      --color-tab:      #6b7280;
+      --color-tab-active: #1a1226;
+      --tab-hover-bg:   rgba(109,40,217,0.06);
+
+      /* Text */
+      --text-primary:   #1a1226;
+      --text-secondary: #4b5563;
+      --text-muted:     #6b7280;
+      --text-input:     #1a1226;
+
+      /* Provider info panel — neutral so text pops */
+      --bg-provider-info: #f8f7fc;
+      --border-info:    #e0dce8;
+      --border-info-accent: rgba(92,110,245,0.5);
+
+      /* Tone / lang options */
+      --bg-opt:         #f8f7fc;
+      --border-opt:     #ddd8e8;
+      --color-opt:      #4b5563;
+
+      /* Save bar */
+      --bg-savebar:     linear-gradient(180deg, transparent 0%, #f5f4f8 30%);
+
+      /* Test result states — colored bg, dark text for readability in light mode */
+      --test-success-bg:     #f0fdf4;
+      --test-success-border: rgba(34,197,94,0.5);
+      --test-success-color:  #14532d;
+      --test-error-bg:       #fef2f2;
+      --test-error-border:   rgba(239,68,68,0.5);
+      --test-error-color:    #7f1d1d;
+      --test-warn-bg:        #fffbeb;
+      --test-warn-border:    rgba(245,158,11,0.5);
+      --test-warn-color:     #78350f;
+
+      /* Toasts — neutral bg, color expressed via border only */
+      --bg-unsaved:        #ffffff;
+      --border-unsaved:    rgba(92,110,245,0.6);
+      --color-unsaved:     #1a1226;
+      --color-unsaved-dot: #5c6ef5;
+      --bg-saved-toast:    #ffffff;
+      --color-saved-toast: #1a1226;
+      --border-saved:      rgba(34,197,94,0.65);
+
+      /* How-to */
+      --bg-howto-hero:  linear-gradient(135deg, #f0edf8 0%, #ece8f8 100%);
+      --border-howto:   #e0dce8;
+      --bg-howto-card:  #f8f7fc;
+      --bg-tips:        #f8f7fc;
+      --border-tips:    rgba(92,110,245,0.5);
+      --color-tips-strong: #1a1226;
+      --bg-setup-step:  #ffffff;
+      --border-setup:   #e5e0ef;
+
+      /* Model recommendations (Getting Started) */
+      --bg-reco-free:     #f8f7fc;
+      --border-reco-free: rgba(34,197,94,0.35);
+      --color-reco-free:  #ffffff;
+      --badge-bg-free:    #16a34a;
+      --bg-reco-paid:     #f8f7fc;
+      --border-reco-paid: rgba(245,158,11,0.35);
+      --color-reco-paid:  #ffffff;
+      --badge-bg-paid:    #d97706;
+
+      /* Tabs */
+      --color-tab-active-text: #1a1226;   /* dark text on light active tab */
+      --border-tab-bottom:     #f5f4f8;   /* matches page bg so active tab "merges" */
+
+      /* How-to section */
+      --color-usage-heading:  #5b21b6;    /* deep purple — readable on light */
+      --color-usage-body:     #374151;    /* dark grey body text */
+      --color-usage-strong:   #1a1226;    /* even darker for emphasis */
+      --color-tips-body:      #374151;
+      --bg-kbd:               #f0edf8;
+      --border-kbd:           #c4b5d4;
+      --color-kbd:            #3b0764;
+
+      /* Provider logo tints — lighten for light mode */
+      --logo-openrouter-bg: #f0eeff;
+      --logo-openai-bg:     #edf8f5;
+      --logo-anthropic-bg:  #fef3e8;
+      --logo-google-bg:     #eef3ff;
+      --logo-mistral-bg:    #fff3ee;
+      --logo-meta-bg:       #eef3ff;
+      --logo-cohere-bg:     #edfbf0;
+      --logo-groq-bg:       #f5eeff;
+      --logo-together-bg:   #eefbfd;
+      --logo-fireworks-bg:  #fff8ee;
+      --logo-deepseek-bg:   #eef3ff;
+      --logo-xai-bg:        #f5f5f5;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-page:        #07090f;
+        --bg-header:      linear-gradient(180deg, #0f1117 0%, #07090f 100%);
+        --border-header:  #1a1d2e;
+
+        --bg-card:        #0f1117;
+        --border-card:    #1e2130;
+        --bg-input:       #161820;
+        --border-input:   #252836;
+        --bg-input-btn:   #161820;
+
+        --bg-tab-active:  #07090f;
+        --color-tab:      #6b7280;
+        --color-tab-active: #ffffff;
+        --tab-hover-bg:   rgba(255,255,255,0.04);
+
+        --text-primary:   #e8eaf0;
+        --text-secondary: #9ca3af;
+        --text-muted:     #6b7280;
+        --text-input:     #e8eaf0;
+
+        --bg-provider-info: #161820;
+        --border-info:    #1e2130;
+        --border-info-accent: rgba(92,110,245,0.45);
+
+        --bg-opt:         #161820;
+        --border-opt:     #252836;
+        --color-opt:      #9ca3af;
+
+        --bg-savebar:     linear-gradient(180deg, transparent 0%, #07090f 30%);
+
+        /* Test result states — tinted bg, light text for dark mode */
+        --test-success-bg:     rgba(34,197,94,0.12);
+        --test-success-border: rgba(34,197,94,0.4);
+        --test-success-color:  #86efac;
+        --test-error-bg:       rgba(239,68,68,0.12);
+        --test-error-border:   rgba(239,68,68,0.4);
+        --test-error-color:    #fca5a5;
+        --test-warn-bg:        rgba(245,158,11,0.12);
+        --test-warn-border:    rgba(245,158,11,0.4);
+        --test-warn-color:     #fcd34d;
+
+        --bg-unsaved:        #0f1117;
+        --border-unsaved:    rgba(92,110,245,0.6);
+        --color-unsaved:     #e8eaf0;
+        --color-unsaved-dot: #818cf8;
+        --bg-saved-toast:    #0f1117;
+        --color-saved-toast: #e8eaf0;
+        --border-saved:      rgba(34,197,94,0.65);
+
+        --bg-howto-hero:  linear-gradient(135deg, #0f1117 0%, #12102a 100%);
+        --border-howto:   #1e2130;
+        --bg-howto-card:  #0f1117;
+        --bg-tips:        #161820;
+        --border-tips:    rgba(92,110,245,0.45);
+        --color-tips-strong: #e8eaf0;
+        --bg-setup-step:  #0f1117;
+
+        /* Model recommendations (Getting Started) */
+        --bg-reco-free:     #161820;
+        --border-reco-free: rgba(34,197,94,0.35);
+        --color-reco-free:  #ffffff;
+        --badge-bg-free:    #16a34a;
+        --bg-reco-paid:     #161820;
+        --border-reco-paid: rgba(245,158,11,0.35);
+        --color-reco-paid:  #ffffff;
+        --badge-bg-paid:    #d97706;
+
+        /* Tabs */
+        --color-tab-active-text: #ffffff;
+        --border-tab-bottom:     #07090f;
+
+        /* How-to section */
+        --color-usage-heading:  #c4b5fd;   /* soft lavender — readable on dark */
+        --color-usage-body:     #d1d5db;   /* light grey body text */
+        --color-usage-strong:   #f3f4f6;   /* near-white for emphasis */
+        --color-tips-body:      #d1d5db;
+        --bg-kbd:               #1e2130;
+        --border-kbd:           #374151;
+        --color-kbd:            #e2e8f0;
+        --border-setup:   #1e2130;
+
+        --logo-openrouter-bg: #1a1a2e;
+        --logo-openai-bg:     #0d1f1a;
+        --logo-anthropic-bg:  #1f150a;
+        --logo-google-bg:     #0a1628;
+        --logo-mistral-bg:    #1a100a;
+        --logo-meta-bg:       #0a1228;
+        --logo-cohere-bg:     #0a1a14;
+        --logo-groq-bg:       #1a0a1a;
+        --logo-together-bg:   #0d1a1a;
+        --logo-fireworks-bg:  #1a100a;
+        --logo-deepseek-bg:   #0a1228;
+        --logo-xai-bg:        #0f0f0f;
+      }
+    }
+
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Setup required banner ── */
+    #setup-banner {
+      background: linear-gradient(135deg, #1e1228 0%, #150e22 100%);
+      border-bottom: 1px solid rgba(168,85,247,0.3);
+      color: #d8b4fe;
+      display: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 11px 24px;
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    #setup-banner.visible { display: flex; }
+    #setup-banner .setup-icon { font-size: 16px; }
+    #setup-banner a {
+      color: #c084fc;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-header);
+      padding: 20px 28px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .page-logo { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; align-self: flex-start; }
+    .page-icon { font-size: 30px; }
+    .page-header h1 { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
+    .page-header h1 .page-subtitle { font-weight: 600; color: var(--text-muted); font-size: 14px; letter-spacing: 0; }
+    .page-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+      padding-bottom: 0;
+      width: 100%;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      color: var(--color-tab);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 18px;
+      position: relative;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text-primary); background: var(--tab-hover-bg); }
+    .tab-btn.active {
+      color: var(--color-tab-active-text);
+      font-weight: 700;
+      background: var(--bg-tab-active);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #5c6ef5, #8b5cf6);
+      border-radius: 2px 2px 0 0;
+    }
+    .tab-btn .tab-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: #f59e0b;
+      border-radius: 50%;
+      margin-left: 6px;
+      vertical-align: middle;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .tab-btn.has-changes .tab-dot { opacity: 1; }
+
+    /* ── Tab panels ── */
+    .tab-content { padding: 28px; max-width: 660px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #5c6ef5;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after { content: ''; flex: 1; height: 1px; background: #1e2130; }
+
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.02em;
+    }
+    .hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.55; }
+    .hint a { color: #5c6ef5; text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
+
+    input[type="text"], input[type="password"], select, textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 10px;
+      color: var(--text-input);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 10px 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #5c6ef5;
+      box-shadow: 0 0 0 3px rgba(92,110,245,0.15);
+    }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+    /* ── Provider grid ── */
+    .key-row { display: flex; gap: 8px; }
+    .key-row input { flex: 1; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+    .reveal-btn, .test-btn {
+      background: var(--bg-input-btn);
+      border: 1px solid var(--border-input);
+      border-radius: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .reveal-btn { font-size: 16px; display: flex; align-items: center; justify-content: center; min-width: 38px; }
+    .reveal-btn:hover, .test-btn:hover:not(:disabled) { border-color: #5c6ef5; color: #a5b4fc; }
+    .test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .test-result {
+      margin-top: 8px; border-radius: 8px; font-size: 12.5px; font-weight: 500; line-height: 1.5;
+      padding: 10px 14px 10px 14px;
+      border: 1px solid var(--border-input);
+      border-left: 4px solid transparent;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    .test-result.success {
+      background: var(--test-success-bg);
+      border-color: var(--test-success-border);
+      border-left-color: var(--test-success-border);
+      color: var(--test-success-color);
+    }
+    .test-result.error {
+      background: var(--test-error-bg);
+      border-color: var(--test-error-border);
+      border-left-color: var(--test-error-border);
+      color: var(--test-error-color);
+    }
+    .test-result.warn {
+      background: var(--test-warn-bg);
+      border-color: var(--test-warn-border);
+      border-left-color: var(--test-warn-border);
+      color: var(--test-warn-color);
+    }
+
+    .provider-logo {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 800;
+    }
+
+    .logo-openrouter { background: var(--logo-openrouter-bg); color: #7c3aed; }
+    .logo-openai     { background: var(--logo-openai-bg); color: #10a37f; }
+    .logo-anthropic  { background: var(--logo-anthropic-bg); color: #d97706; }
+    .logo-google     { background: var(--logo-google-bg); color: #4285f4; }
+    .logo-mistral    { background: var(--logo-mistral-bg); color: #f97316; }
+    .logo-meta       { background: var(--logo-meta-bg); color: #0866ff; }
+    .logo-cohere     { background: var(--logo-cohere-bg); color: #39d353; }
+    .logo-groq       { background: var(--logo-groq-bg); color: #a855f7; }
+    .logo-together   { background: var(--logo-together-bg); color: #06b6d4; }
+    .logo-fireworks  { background: var(--logo-fireworks-bg); color: #f59e0b; }
+    .logo-deepseek   { background: var(--logo-deepseek-bg); color: #3b82f6; }
+    .logo-xai        { background: var(--logo-xai-bg); color: #e5e5e5; }
+    .logo-custom     { background: rgba(92,110,245,0.12); color: #5c6ef5; }
+
+    /* ── Compact provider selector (pills, grouped) ── */
+    .provider-group-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 14px 0 6px;
+    }
+    .provider-group-label:first-child { margin-top: 0; }
+    .provider-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .provider-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-opt);
+      border: 1.5px solid var(--border-opt);
+      border-radius: 100px;
+      cursor: pointer;
+      padding: 5px 12px 5px 5px;
+      transition: all 0.15s;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+    .provider-pill:hover { border-color: #5c6ef5; color: var(--text-primary); }
+    .provider-pill.active { border-color: #5c6ef5; background: rgba(92,110,245,0.1); color: #a5b4fc; }
+    .provider-pill .provider-logo {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .provider-pill-add {
+      border-style: dashed;
+      color: var(--text-muted);
+    }
+    .provider-pill-add:hover { border-color: #5c6ef5; color: #a5b4fc; }
+    .provider-pill-add .provider-logo {
+      background: transparent;
+      border: 1.5px dashed var(--border-opt);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .provider-pill-add:hover .provider-logo { border-color: #5c6ef5; color: #5c6ef5; }
+    .provider-pill-remove {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.45;
+      padding: 0 0 0 2px;
+      line-height: 1;
+    }
+    .provider-pill-remove:hover { opacity: 1; color: #fca5a5; }
+
+    /* ── Custom Providers tab ── */
+    .template-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .template-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 100px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+    }
+    .template-btn:hover { border-color: #5c6ef5; color: var(--text-primary); transform: translateY(-1px); }
+
+    .model-name-row {
+      display: flex;
+      gap: 8px;
+    }
+    .model-name-row input { flex: 1; }
+    .model-name-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .model-name-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 100px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      padding: 4px 6px 4px 12px;
+      color: var(--text-primary);
+    }
+    .model-name-chip button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      line-height: 1;
+    }
+    .model-name-chip button:hover { color: #fca5a5; }
+    .model-name-chips-empty { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 8px; }
+
+    .model-examples {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-input);
+    }
+    .model-examples-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .model-examples-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+    .model-example-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: 1px dashed var(--border-input);
+      border-radius: 100px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      padding: 3px 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin: 0 6px 6px 0;
+      transition: all 0.12s;
+    }
+    .model-example-chip:hover { border-color: #7c3aed; color: #7c3aed; }
+    .model-example-chip.added {
+      opacity: 0.45;
+      cursor: default;
+      border-style: solid;
+    }
+
+    /* ── Icon picker category headers (shared popover) ── */
+    .icon-pick-category {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 8px 8px 4px;
+    }
+    .icon-pick-category:first-child { padding-top: 2px; }
+
+    .provider-info {
+      background: var(--bg-provider-info);
+      border: 1px solid var(--border-info);
+      border-left: 4px solid var(--border-info-accent);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      display: none;
+    }
+    .provider-info.visible { display: block; }
+    .provider-info strong { color: var(--text-primary); }
+    .provider-info a { color: #5c6ef5; text-decoration: none; }
+    .provider-info a:hover { text-decoration: underline; }
+
+    /* ── Provider ecosystem bubble (selector + description + recs) ── */
+    .provider-ecosystem-bubble {
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 14px 14px 6px;
+      margin-bottom: 14px;
+    }
+    /* When provider-info is hidden, avoid extra bottom padding */
+    .provider-ecosystem-bubble .provider-info:not(.visible) { margin-bottom: 0; }
+    .provider-ecosystem-bubble .model-rec:empty { display: none; }
+
+    /* ── API config bubble (model + key grouped together) ── */
+    .api-config-bubble {
+      background: var(--bg-provider-info);
+      border: 1px solid var(--border-info);
+      border-radius: 12px;
+      padding: 16px 16px 4px;
+      margin-top: 4px;
+    }
+    .api-config-bubble .field { margin-bottom: 14px; }
+    .api-config-bubble .field:last-child { margin-bottom: 12px; }
+
+    /* ── Model recs ── */
+    .model-rec { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .model-rec-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.45; color: var(--text-muted); }
+    .model-badge {
+      display: inline-block; border-radius: 5px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.04em; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+    }
+    .badge-best  { background: #6366f1; color: #ffffff; border: none; }
+    .badge-fast  { background: #16a34a; color: #ffffff; border: none; }
+    .badge-free  { background: #d97706; color: #ffffff; border: none; }
+    .badge-value { background: #0d9488; color: #ffffff; border: none; }
+
+    /* ── Tone & language grids ── */
+    .tone-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .lang-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .tone-opt, .lang-opt {
+      background: var(--bg-opt);
+      border: 1.5px solid var(--border-opt);
+      border-radius: 10px;
+      color: var(--color-opt);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 9px 6px;
+      text-align: center;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tone-opt.active, .lang-opt.active {
+      background: rgba(92,110,245,0.12);
+      border-color: #5c6ef5;
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+    .tone-opt:hover:not(.active), .lang-opt:hover:not(.active) { border-color: #5c6ef5; color: var(--text-primary); }
+    .lang-flag { font-size: 16px; line-height: 1; }
+
+    .lang-disclaimer {
+      margin-top: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-left: 4px solid #f59e0b;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 11px 14px 11px 12px;
+    }
+    .lang-disclaimer strong { color: var(--text-primary); }
+
+    /* ── Setting toggle (pill switch) ── */
+    .setting-toggle-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 2px 0;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 42px; height: 24px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border-input);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      transition: transform 0.18s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #5c6ef5; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+    .toggle-info { display: flex; flex-direction: column; gap: 3px; }
+    .toggle-info strong { font-size: 13px; color: var(--text-primary); font-weight: 600; }
+    .toggle-info span { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+
+    /* ── Appearance Tab — Theme Grid ── */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .theme-card {
+      border: 2px solid var(--border-input);
+      border-radius: 12px;
+      cursor: pointer;
+      padding: 10px;
+      background: var(--bg-card);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .theme-card:hover { border-color: #5c6ef5; }
+    .theme-card.active {
+      border-color: #5c6ef5;
+      box-shadow: 0 0 0 3px rgba(92,110,245,0.2);
+    }
+    .theme-swatches {
+      display: flex;
+      gap: 3px;
+      border-radius: 7px;
+      overflow: hidden;
+      height: 28px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .swatch { flex: 1; }
+    .theme-name {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .theme-section-label {
+      grid-column: 1 / -1;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 0 2px;
+    }
+    .theme-section-label:first-child { padding-top: 0; }
+
+    select optgroup { color: var(--text-muted); font-weight: 700; font-size: 11px; }
+    select option   { color: var(--text-input); background: var(--bg-input); }
+
+    /* ── Sub-tabs (nested within a main tab) ── */
+    .subtab-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .subtab-btn {
+      background: var(--bg-opt);
+      border: 1.5px solid var(--border-opt);
+      border-radius: 100px;
+      color: var(--color-opt);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 7px 16px;
+      transition: all 0.15s;
+    }
+    .subtab-btn:hover:not(.active) { border-color: #5c6ef5; color: var(--text-primary); }
+    .subtab-btn.active {
+      background: linear-gradient(135deg, #5c6ef5, #8b5cf6);
+      border-color: transparent;
+      color: #fff;
+    }
+    .subtab-panel { display: none; }
+    .subtab-panel.active { display: block; }
+
+    /* ── Model management rows (custom & default lists) ── */
+    .model-row, .model-check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-opt);
+      border: 1px solid var(--border-opt);
+      border-radius: 10px;
+      margin-bottom: 6px;
+    }
+    .model-row:last-child, .model-check-row:last-child { margin-bottom: 0; }
+    .model-row { justify-content: space-between; }
+    .model-row-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .model-row-label { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+    .model-row-id {
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .model-row-remove {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 8px;
+      color: #fca5a5;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .model-row-remove:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
+
+    .model-check-row { cursor: pointer; }
+    .model-check-row input[type="checkbox"] {
+      width: 16px; height: 16px; flex-shrink: 0;
+      accent-color: #5c6ef5; cursor: pointer;
+    }
+
+    .custom-model-empty, .default-model-empty {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 16px;
+      font-style: italic;
+      background: var(--bg-opt);
+      border: 1px dashed var(--border-opt);
+      border-radius: 10px;
+    }
+
+    .add-model-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    @media (max-width: 540px) {
+      .add-model-row { grid-template-columns: 1fr; }
+    }
+
+    .add-model-btn {
+      background: linear-gradient(135deg, #5c6ef5 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      margin-top: 12px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .add-model-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .add-model-btn:active { transform: translateY(0); }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .btn-row .add-model-btn { margin-top: 0; }
+
+    .btn-secondary {
+      background: var(--bg-input-btn);
+      border: 1px solid var(--border-input);
+      border-radius: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 18px;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: #5c6ef5; color: var(--text-primary); }
+
+    /* ── Custom tones management ── */
+
+    /* Emoji picker trigger button (shared by "Add New Tone" and table rows) */
+    .emoji-pick-btn {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      justify-self: center;
+    }
+    .emoji-pick-btn:hover { border-color: #5c6ef5; transform: translateY(-1px); }
+
+    /* Emoji picker popover */
+    .emoji-picker-popover {
+      position: fixed;
+      z-index: 1000;
+      background: var(--bg-card);
+      border: 1px solid var(--border-opt);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      width: 260px;
+      max-height: 320px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .emoji-picker-search {
+      margin: 8px;
+      margin-bottom: 6px;
+    }
+    .emoji-picker-list {
+      overflow-y: auto;
+      padding: 0 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .emoji-pick-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 7px 8px;
+      text-align: left;
+      color: var(--text-primary);
+      font-family: inherit;
+      width: 100%;
+    }
+    .emoji-pick-item:hover { background: var(--bg-opt); }
+    .emoji-pick-glyph { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+    .emoji-pick-empty {
+      padding: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* "Add a New Tone" form layout */
+    .new-tone-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+    .new-tone-row .field { flex: 1; margin-bottom: 0; }
+
+    /* Tone management table */
+    .tone-table {
+      border: 1px solid var(--border-opt);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .tone-table-header, .tone-row-main {
+      display: grid;
+      grid-template-columns: 34px 34px 46px 1fr 32px;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+    }
+    .tone-table-header {
+      background: var(--bg-opt);
+      border-bottom: 1px solid var(--border-opt);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .tone-table-header span { text-align: center; }
+    .tone-table-header span.col-name { text-align: left; }
+    .tone-row { border-bottom: 1px solid var(--border-opt); }
+    .tone-row:last-child { border-bottom: none; }
+    .tone-row.disabled .tone-name-input,
+    .tone-row.disabled .emoji-pick-btn,
+    .tone-row.disabled .tone-prompt-input { opacity: 0.45; }
+    .tone-row-prompt { padding: 0 10px 10px; }
+    .tone-enable-checkbox, .tone-default-radio {
+      width: 16px; height: 16px;
+      accent-color: #5c6ef5;
+      cursor: pointer;
+      justify-self: center;
+    }
+    .tone-name-input { font-weight: 600; }
+    .tone-prompt-input {
+      width: 100%;
+      min-height: 56px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    .tone-delete-btn {
+      background: none;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 15px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      justify-self: center;
+    }
+    .tone-delete-btn:hover:not(:disabled) { background: rgba(239,68,68,0.12); color: #fca5a5; }
+    .tone-delete-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    @media (max-width: 540px) {
+      .tone-table-header, .tone-row-main { grid-template-columns: 28px 28px 40px 1fr 28px; gap: 6px; }
+    }
+    /* ── Save bar ── */
+    /* Hidden by default — only appears once a setting has changed (.visible),
+       and disappears again after saving. */
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-savebar);
+      padding: 0 28px;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+    }
+    .save-bar.visible {
+      max-height: 100px;
+      opacity: 1;
+      padding: 16px 28px 24px;
+    }
+    .save-btn {
+      background: linear-gradient(135deg, #5c6ef5 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 11px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 11px 28px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s, box-shadow 0.3s;
+      letter-spacing: -0.01em;
+      animation: pulse-save 2s ease-in-out infinite;
+    }
+    .save-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .save-btn:active { transform: translateY(0); }
+    @keyframes pulse-save {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(92,110,245,0.5); }
+      50%       { box-shadow: 0 0 0 8px rgba(92,110,245,0); }
+    }
+
+    /* ── Top drop-down toast ── */
+    #saved-toast, #unsaved-banner {
+      position: fixed;
+      top: 0; left: 50%;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 26px;
+      white-space: nowrap;
+      border-top: none;
+      border-radius: 0 0 14px 14px;
+    }
+
+    #saved-toast {
+      transform: translateX(-50%) translateY(-120%);
+      background: var(--bg-saved-toast);
+      border: 2px solid var(--border-saved);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 12px rgba(34,197,94,0.12);
+      color: var(--color-saved-toast);
+      transition: transform 0.35s cubic-bezier(0.34, 1.3, 0.64, 1);
+    }
+    #saved-toast.visible { transform: translateX(-50%) translateY(0); }
+
+    #unsaved-banner {
+      transform: translateX(-50%) translateY(-120%);
+      background: var(--bg-unsaved);
+      border: 2px solid var(--border-unsaved);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 12px rgba(92,110,245,0.12);
+      color: var(--color-unsaved);
+      transition: transform 0.35s cubic-bezier(0.34, 1.3, 0.64, 1);
+      gap: 12px;
+    }
+    #unsaved-banner.visible { transform: translateX(-50%) translateY(0); }
+
+    .unsaved-dot {
+      width: 7px; height: 7px;
+      background: var(--color-unsaved-dot);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .toast-icon {
+      width: 20px; height: 20px;
+      background: rgba(34,197,94,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+    }
+
+    /* ── How-to tab styles ── */
+    .howto-hero {
+      background: var(--bg-howto-hero);
+      border: 1px solid var(--border-howto);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .howto-hero-icon { font-size: 40px; margin-bottom: 12px; }
+    .howto-hero h2 { font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.02em; }
+    .howto-hero p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; max-width: 420px; margin: 0 auto; }
+
+    /* Compact welcome — short, single-row hero used at the top of Getting Started */
+    .howto-hero-compact {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      padding: 14px 18px;
+    }
+    .howto-hero-compact .howto-hero-icon { font-size: 28px; margin-bottom: 0; flex-shrink: 0; }
+    .howto-hero-compact .howto-hero-text { min-width: 0; }
+    .howto-hero-compact h2 { font-size: 15px; margin-bottom: 2px; }
+    .howto-hero-compact p  { font-size: 12px; margin: 0; max-width: none; line-height: 1.5; }
+
+    /* Model recommendations — Getting Started */
+    .model-reco {
+      border-radius: 12px;
+      border: 1px solid var(--border-howto);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--color-usage-body);
+      line-height: 1.7;
+    }
+    .model-reco:last-child { margin-bottom: 0; }
+    .model-reco p { margin-bottom: 8px; }
+    .model-reco p:last-child { margin-bottom: 0; }
+    .model-reco ul { padding-left: 18px; margin-bottom: 8px; }
+    .model-reco li { margin-bottom: 4px; }
+    .model-reco li strong { color: var(--color-usage-strong); }
+    .model-reco-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .model-reco-badge {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      border-radius: 100px; padding: 2px 9px;
+    }
+    .model-reco-free {
+      background: var(--bg-reco-free);
+      border-color: var(--border-reco-free);
+      border-left: 4px solid var(--border-reco-free);
+    }
+    .model-reco-free .model-reco-badge { background: var(--badge-bg-free); color: var(--color-reco-free); }
+    .model-reco-paid {
+      background: var(--bg-reco-paid);
+      border-color: var(--border-reco-paid);
+      border-left: 4px solid var(--border-reco-paid);
+    }
+    .model-reco-paid .model-reco-badge { background: var(--badge-bg-paid); color: var(--color-reco-paid); }
+
+    /* Privacy tab */
+    .privacy-section { margin-bottom: 18px; }
+    .privacy-section:last-child { margin-bottom: 0; }
+    .privacy-section h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .privacy-section p { font-size: 12.5px; color: var(--color-usage-body); line-height: 1.7; margin: 0; }
+
+    .setup-steps {
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .setup-step {
+      background: var(--bg-howto-card);
+      border: 1px solid var(--border-howto);
+      border-radius: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 18px;
+      position: relative;
+    }
+    .setup-step::before {
+      counter-increment: step;
+      content: counter(step);
+      background: linear-gradient(135deg, #5c6ef5, #8b5cf6);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .setup-step-body h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .setup-step-body p  { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .setup-step-body a  { color: #5c6ef5; text-decoration: none; }
+    .setup-step-body a:hover { text-decoration: underline; }
+    .setup-step-body .kbd {
+      display: inline-block;
+      background: var(--bg-kbd);
+      border: 1px solid var(--border-kbd);
+      border-radius: 5px;
+      color: var(--color-kbd);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      padding: 1px 6px;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .usage-card {
+      background: var(--bg-howto-card);
+      border: 1px solid var(--border-howto);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .usage-card-wide { grid-column: 1 / -1; }
+    .usage-card h3 {
+      font-size: 13px; font-weight: 700; color: var(--color-usage-heading);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .usage-card ol, .usage-card ul {
+      padding-left: 16px;
+      color: var(--color-usage-body);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .usage-card li strong { color: var(--color-usage-strong); font-weight: 600; }
+
+    .tips-box {
+      background: var(--bg-tips);
+      border: 1px solid var(--border-input);
+      border-left: 4px solid var(--border-tips);
+      border-radius: 10px;
+      padding: 14px 16px 14px 14px;
+      font-size: 12px;
+      color: var(--color-tips-body);
+      line-height: 1.7;
+    }
+    .tips-box strong { color: var(--color-tips-strong); }
+    .kbd {
+      display: inline-block;
+      background: var(--bg-kbd);
+      border: 1px solid var(--border-kbd);
+      border-radius: 5px;
+      color: var(--color-kbd);
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 11px;
+      padding: 1px 6px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Setup required banner (hidden when key is set) -->
+<div id="setup-banner">
+  <span class="setup-icon">🔑</span>
+  <span>An API key is required to use this extension. &nbsp;<a id="banner-go-api">Go to API Settings →</a></span>
+</div>
+
+<!-- Page header with tabs -->
+<div class="page-header">
+  <div class="page-logo">
+    <div class="page-icon">✏️</div>
+    <div>
+      <h1>PenPal AI <span class="page-subtitle">Writing Assistant</span></h1>
+      <p>Your words, polished ✏️</p>
+    </div>
+  </div>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="howto">
+      📖 Getting Started
+    </button>
+    <button class="tab-btn" data-tab="usage">
+      🧭 How to Use
+    </button>
+    <button class="tab-btn" data-tab="api">
+      🔑 API &amp; Model
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab-btn" data-tab="style">
+      🎨 Writing Style
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab-btn" data-tab="language">
+      🌐 Language
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab-btn" data-tab="appearance">
+      🎨 Appearance
+      <span class="tab-dot"></span>
+    </button>
+    <button class="tab-btn" data-tab="privacy">
+      🔒 Privacy
+    </button>
+  </nav>
+</div>
+
+<!-- ═══ TAB: Getting Started ═══════════════════════════════════════════════ -->
+<div class="tab-content">
+<div class="tab-panel active" id="tab-howto">
+
+  <div class="howto-hero howto-hero-compact">
+    <div class="howto-hero-icon">✏️</div>
+    <div class="howto-hero-text">
+      <h2>PenPal AI Writing Assistant</h2>
+      <p>Highlight text anywhere in your browser, click <strong>Rewrite with PenPal</strong>, and get a polished version back — in your tone, style, and language.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Initial Setup — Complete These Steps First</div>
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="setup-step-body">
+          <h3>Choose an AI Provider &amp; Get an API Key</h3>
+          <p>Go to the <strong>API &amp; Model</strong> tab and select a provider. We recommend <strong>OpenRouter</strong> — one key gives you access to OpenAI, Anthropic Claude, Google Gemini, and many more. Sign up free at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create an API key. New here? See <strong>Recommended Models</strong> below for our suggested free setup.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-body">
+          <h3>Paste Your API Key &amp; Test It</h3>
+          <p>On the <strong>API &amp; Model</strong> tab, paste your key into the API Key field, then click <strong>Test Connection</strong> to verify it works before saving.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-body">
+          <h3>Pick a Model</h3>
+          <p>After entering your key, select a model from the dropdown. Not sure which one? Start with the free recommendation below, then upgrade to a paid model any time for higher-quality results.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-body">
+          <h3>Set Your Default Tone &amp; Language</h3>
+          <p>Visit the <strong>Writing Style</strong> tab to set your default tone from 16 options — from Casual and Witty to Academic and Poetic. Visit <strong>Language</strong> to set your output language. These become your defaults — you can always override per-use in the PenPal panel.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-body">
+          <h3>Save Your Settings</h3>
+          <p>A <strong>Save Settings</strong> button appears at the bottom of the page whenever you've made a change. Click it to save — a green confirmation banner drops in, and the button disappears again until your next change.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recommended Models</div>
+
+    <div class="model-reco model-reco-free">
+      <div class="model-reco-head"><span class="model-reco-badge">FREE</span> The easiest way to get started</div>
+      <p><strong>Provider:</strong> OpenRouter &nbsp;·&nbsp; <strong>Model:</strong> Llama 3.1 8B <span class="kbd">free tier</span></p>
+      <p>This combination costs nothing, so it's a great way to try PenPal AI right away. Free-tier models like Llama 3.1 8B are useful for testing things out, but as a smaller model it can sometimes overlook part of a request — such as a specific tone, language, or formatting instruction — or produce less accurate rewrites than larger models. If results seem hit-or-miss, that's a limitation of the free model itself, not the extension.</p>
+    </div>
+
+    <div class="model-reco model-reco-paid">
+      <div class="model-reco-head"><span class="model-reco-badge">PAID</span> When you want more consistent quality</div>
+      <p>Paid models typically cost a small fraction of a cent per rewrite and deliver noticeably more reliable, nuanced results — especially useful for professional or client-facing writing, longer passages, and less common tones or languages.</p>
+      <ul>
+        <li><strong>Claude Sonnet</strong> — Anthropic's well-rounded mid-tier model. A strong everyday upgrade that follows tone and style instructions closely.</li>
+        <li><strong>Claude Opus</strong> — Anthropic's most capable model. Worth it for nuanced, high-stakes, or longer-form writing where quality matters most.</li>
+        <li><strong>GPT-4o</strong> — OpenAI's flagship all-rounder. A great alternative if you'd prefer to stay within the OpenAI family of models.</li>
+      </ul>
+      <p>All three are available through OpenRouter using the same API key as the free tier — just switch the model on the <strong>API &amp; Model</strong> tab whenever you'd like better results.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB: How to Use ═════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-usage">
+
+  <div class="card">
+    <div class="card-title">How to Use the Extension</div>
+    <div class="usage-grid">
+      <div class="usage-card">
+        <h3>🖱 Right-Click Menu</h3>
+        <ol>
+          <li>Select any text on a webpage</li>
+          <li>Right-click the selection</li>
+          <li>Click <strong>✏️ Rewrite with PenPal AI</strong> in the menu</li>
+          <li>Review the AI suggestion</li>
+          <li>Copy or replace text in-place</li>
+        </ol>
+      </div>
+      <div class="usage-card">
+        <h3>✏️ Hover Toolbar</h3>
+        <ol>
+          <li>Highlight any text on a webpage</li>
+          <li>A <strong>✏️ Rewrite with PenPal AI</strong> button floats above your selection</li>
+          <li>Click it — AI rewrites instantly using your default tone</li>
+          <li>Switch tone to auto-regenerate</li>
+          <li><strong>Copy</strong> and <strong>Replace</strong> sit side by side once the result is ready</li>
+        </ol>
+      </div>
+      <div class="usage-card">
+        <h3>⌨ Keyboard Shortcut</h3>
+        <ol>
+          <li>Click inside any text field or textarea</li>
+          <li>Select the text you want to improve</li>
+          <li>Press <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">A</span></li>
+          <li>The PenPal AI panel opens — use <strong>Replace</strong> to insert the result directly</li>
+        </ol>
+      </div>
+      <div class="usage-card">
+        <h3>🧩 Extension Popup</h3>
+        <ol>
+          <li>Click the <strong>PenPal AI</strong> icon (pencil) in your Chrome toolbar</li>
+          <li>Paste or type the text you want to improve — or it'll auto-load your page selection</li>
+          <li>Choose a tone from the row of chips</li>
+          <li>Review the result, then <strong>Copy</strong> it back to where you need it</li>
+        </ol>
+      </div>
+      <div class="usage-card usage-card-wide">
+        <h3>🗗 Pop-Out Window</h3>
+        <ol>
+          <li>Open the PenPal AI popup as usual (it loads any highlighted text automatically)</li>
+          <li>Click the pop-out icon (⧉) next to ⚙ Settings to detach PenPal into its own window</li>
+          <li>The pop-out stays open while you browse — keep it visible alongside the page you're editing</li>
+          <li>Highlight new text on any tab and the pop-out updates automatically, as long as you haven't started typing your own text in it</li>
+          <li>Copy results back into whatever you're working on</li>
+        </ol>
+      </div>
+    </div>
+    <div class="tips-box">
+      <strong>PenPal AI works with most text-based websites</strong> — social media, email, forums, CRMs, and anywhere you can type in a browser. The <strong>Replace</strong> button always copies the rewritten text to your clipboard first, then tries to insert it directly into the field (or page text) you highlighted.
+      <br><br>
+      If a site's security settings block automatic text insertion, Replace will show <strong>"✓ Copied — paste with Ctrl+V"</strong> — the text is already on your clipboard, so just click into the field and press <span class="kbd">Ctrl+V</span> (or <span class="kbd">⌘V</span> on Mac).
+      <br><br>
+      <strong>Google Docs and Microsoft Office 365</strong> use custom editors that block browser extensions from inserting text directly, so Replace will always fall back to copy-and-paste there.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══ TAB: API & Model ════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-api">
+
+  <div class="subtab-bar" data-group="api">
+    <button class="subtab-btn active" data-group="api" data-subtab="defaults">⭐ Defaults</button>
+    <button class="subtab-btn" data-group="api" data-subtab="manage">⚙ Manage Default Providers</button>
+    <button class="subtab-btn" data-group="api" data-subtab="custom">🖥️ Custom Providers</button>
+  </div>
+
+  <!-- ─── Sub-tab: Defaults ─── -->
+  <div class="subtab-panel active" data-group="api" data-subtab="defaults">
+
+    <div class="card">
+      <div class="card-title">AI Provider</div>
+      <div class="provider-ecosystem-bubble">
+        <div id="provider-selector"></div>
+        <div class="provider-info visible" id="provider-info"></div>
+        <div class="model-rec" id="model-rec"></div>
+      </div>
+
+      <div class="api-config-bubble">
+
+        <div class="field">
+          <label>MODEL</label>
+          <select id="model-select"></select>
+          <div class="hint">
+            💡 <strong>New to this?</strong> Start with <strong>OpenRouter</strong> — one key, access to many models, free tiers available. <a href="https://openrouter.ai" target="_blank">openrouter.ai →</a>
+          </div>
+          <div class="hint">
+            Don't see a model you know exists? Add one to a built-in provider on <strong>⚙ Manage Default Providers</strong>, or set up your own server under <strong>🖥️ Custom Providers</strong>.
+          </div>
+        </div>
+
+        <div class="field">
+          <label>API KEY <span style="font-weight:400;color:var(--text-muted)">— for <span class="active-provider-label">OpenRouter</span></span></label>
+          <div class="key-row">
+            <input type="text" id="api-key" placeholder="Paste your API key here…">
+            <button class="reveal-btn" id="reveal-btn" title="Hide API key"></button>
+            <button class="test-btn" id="test-btn">Test Connection</button>
+          </div>
+          <div class="hint">Stored locally in Chrome only — never sent anywhere except the selected provider's API. Each provider keeps its own key, so switching providers above won't overwrite this.</div>
+          <div class="test-result" id="test-result" style="display:none"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── Sub-tab: Manage Default Providers ─── -->
+  <div class="subtab-panel" data-group="api" data-subtab="manage">
+
+    <div class="card">
+      <div class="card-title">Manage Default Providers</div>
+      <div class="tips-box">
+        <strong>Why this exists:</strong> AI providers release new models constantly, and the curated list on the <strong>Defaults</strong> tab can't keep up the moment something new launches. If a built-in provider has a model that isn't listed yet, add its <strong>model ID</strong> here and it'll immediately show up in the Model dropdown on the Defaults tab.
+        <br><br>
+        Model IDs must match the provider's API exactly (for example OpenRouter uses IDs like <span class="kbd">anthropic/claude-opus-5</span>, while OpenAI uses IDs like <span class="kbd">gpt-5</span>). Check the provider's docs or model catalog page for the exact string — even small typos will cause API errors. Use <strong>Test Connection</strong> on the Defaults tab to confirm it works.
+        <br><br>
+        You can also hide built-in defaults you don't use, and override a provider's API endpoint URL if it ever changes. This tab covers the <strong>built-in</strong> providers only — to add an entirely new provider (e.g. a local server), use <strong>🖥️ Custom Providers</strong>.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Provider</div>
+      <div class="field" style="margin-bottom:0">
+        <label>MANAGE MODELS &amp; ENDPOINT FOR</label>
+        <select id="custom-provider-select"></select>
+        <div class="hint">Pick any built-in provider to manage its custom models, hidden defaults, and API endpoint — this selection is separate from the provider you're actively using on the Defaults tab.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">API Endpoint — <span class="custom-provider-label">OpenRouter</span></div>
+      <div class="field">
+        <label>ENDPOINT URL</label>
+        <input type="text" id="custom-endpoint-input" placeholder="https://...">
+        <div class="hint">Default: <span id="custom-endpoint-default" style="font-family:'SF Mono','Fira Code',monospace"></span></div>
+      </div>
+      <div class="btn-row">
+        <button class="add-model-btn" id="custom-endpoint-save-btn">Save Endpoint</button>
+        <button class="btn-secondary" id="custom-endpoint-reset-btn">↺ Reset to Default</button>
+      </div>
+      <div class="test-result" id="custom-endpoint-msg" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add a Model — <span class="custom-provider-label">OpenRouter</span></div>
+      <div class="add-model-row">
+        <div class="field" style="margin-bottom:0">
+          <label>MODEL ID</label>
+          <input type="text" id="custom-model-id" placeholder="e.g. anthropic/claude-opus-5">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>DISPLAY NAME <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+          <input type="text" id="custom-model-label" placeholder="e.g. Claude Opus 5 — latest flagship">
+        </div>
+      </div>
+      <div class="hint" id="custom-provider-doc-hint"></div>
+      <button class="add-model-btn" id="custom-model-add-btn">+ Add Model</button>
+      <div class="test-result" id="custom-model-msg" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Custom Models — <span class="custom-provider-label">OpenRouter</span></div>
+      <div class="custom-model-list" id="custom-model-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Built-in Defaults — <span class="custom-provider-label">OpenRouter</span></div>
+      <div class="hint" style="margin-bottom:10px">Untick a model to hide it from the dropdown on the Defaults tab.</div>
+      <div class="default-model-list" id="default-model-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ─── Sub-tab: Custom Providers ─── -->
+  <div class="subtab-panel" data-group="api" data-subtab="custom">
+
+    <div class="card">
+      <div class="card-title">Custom AI Providers</div>
+      <div class="tips-box">
+        Add your own AI backend — a local model server on this computer or your home network (Ollama, LM Studio, vLLM, LocalAI, Open WebUI, text-generation-webui, llama.cpp, etc.), or any other OpenAI- or Anthropic-compatible endpoint. Once added, it shows up as a provider you can select on the <strong>Defaults</strong> tab, with its own icon, API key, and model list.
+        <br><br>
+        Local servers on <span class="kbd">http://localhost</span> or your LAN are fine — Chrome will ask you to confirm access to that address the first time. Many local servers don't need an API key at all — leave it blank.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quick Templates</div>
+      <div class="hint" style="margin-bottom:10px">Pre-fill the form below with common settings for these local servers — you can still adjust anything before adding.</div>
+      <div class="template-row" id="provider-template-row"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" id="provider-form-title">Add a Custom Provider</div>
+
+      <div class="field">
+        <label>PROVIDER NAME <span style="font-weight:400;color:var(--text-muted)">(required)</span></label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="emoji-pick-btn" id="new-provider-icon-btn" data-emoji="🤖" title="Choose an icon">🤖</button>
+          <input type="text" id="new-provider-name" placeholder="e.g. My Homelab, Office Ollama" style="flex:1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>API ENDPOINT URL <span style="font-weight:400;color:var(--text-muted)">(required)</span></label>
+        <input type="text" id="new-provider-endpoint" placeholder="http://localhost:11434/v1/chat/completions">
+        <div class="hint">Examples: <span class="kbd">http://localhost:11434/v1/chat/completions</span> (Ollama), <span class="kbd">http://localhost:1234/v1/chat/completions</span> (LM Studio), or any cloud-hosted URL.</div>
+      </div>
+
+      <div class="field">
+        <label>API FORMAT</label>
+        <select id="new-provider-format">
+          <option value="openai">OpenAI-compatible (chat/completions) — Ollama, LM Studio, vLLM, LocalAI, llama.cpp, etc.</option>
+          <option value="anthropic">Anthropic-compatible (/v1/messages)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>API KEY <span style="font-weight:400;color:var(--text-muted)">(optional — many local servers don't require one)</span></label>
+        <input type="text" id="new-provider-key" placeholder="Leave blank if your server doesn't need one">
+      </div>
+
+      <div class="field">
+        <label>MODEL NAME(S) <span style="font-weight:400;color:var(--text-muted)">(optional — exact model IDs your server has installed)</span></label>
+        <div class="model-name-row">
+          <input type="text" id="new-provider-model-input" placeholder="e.g. llama3.1">
+          <button type="button" class="btn-secondary" id="new-provider-model-add">+ Add</button>
+        </div>
+        <div class="model-name-chips" id="new-provider-model-chips"></div>
+        <div class="model-examples" id="new-provider-model-examples" style="display:none"></div>
+      </div>
+
+      <div class="field">
+        <label>NOTES / DESCRIPTION <span style="font-weight:400;color:var(--text-muted)">(optional — shown when this provider is selected)</span></label>
+        <textarea id="new-provider-description" placeholder="e.g. Ollama running on my desktop, GPU-accelerated. Models pulled: llama3.1, qwen2.5."></textarea>
+      </div>
+
+      <div class="test-result" id="provider-test-result" style="display:none"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" id="test-provider-btn">Test Connection</button>
+        <button class="add-model-btn" id="add-provider-btn">+ Add Provider</button>
+        <button class="btn-secondary" id="cancel-provider-edit-btn" style="display:none">Cancel</button>
+      </div>
+      <div class="test-result" id="provider-msg" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Custom Providers</div>
+      <div id="custom-provider-list"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══ TAB: Writing Style ══════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-style">
+
+  <div class="subtab-bar" data-group="style">
+    <button class="subtab-btn active" data-group="style" data-subtab="defaults">⭐ Defaults</button>
+    <button class="subtab-btn" data-group="style" data-subtab="custom">🎭 Custom Tones</button>
+  </div>
+
+  <!-- ─── Sub-tab: Defaults ─── -->
+  <div class="subtab-panel active" data-group="style" data-subtab="defaults">
+
+    <div class="card">
+      <div class="card-title">Session Tone Selector</div>
+      <div class="field">
+        <div class="setting-toggle-row">
+          <label class="toggle-switch">
+            <input type="checkbox" id="show-tone-selector" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <div class="toggle-info">
+            <strong>Show tone selector in writing panel</strong>
+            <span>When enabled, a Tone row appears in the writing assistant popup and pop-out window, letting you switch the writing tone per session without changing your default.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tone &amp; Voice</div>
+      <div class="field">
+        <label>DEFAULT TONE</label>
+        <div class="tone-grid" id="tone-grid"></div>
+        <div class="hint">Want a tone that isn't here? Add, edit, or remove tones on the <strong>🎭 Custom Tones</strong> tab above.</div>
+      </div>
+      <div class="field">
+        <label>STYLE NOTES <span style="font-weight:400;color:#4b5563">(applied to every correction)</span></label>
+        <textarea id="writing-style" placeholder="e.g. Use short sentences. Prefer active voice. Avoid jargon."></textarea>
+      </div>
+      <div class="field">
+        <label>CUSTOM AI INSTRUCTIONS</label>
+        <textarea id="custom-instructions" placeholder="e.g. I write for a technical SaaS audience. Always maintain a confident tone. Never use exclamation marks."></textarea>
+        <div class="hint">Context about your audience, brand voice, or rules the AI should always follow.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── Sub-tab: Custom Tones ─── -->
+  <div class="subtab-panel" data-group="style" data-subtab="custom">
+
+    <div class="card">
+      <div class="card-title">Custom Tones</div>
+      <div class="tips-box">
+        Every tone — built-in or your own — is just an instruction sent to the AI describing how to rewrite your text. Below you can turn tones on or off, choose your default, and edit each one's icon, name, or AI prompt. Tones you keep enabled show up as chips in the rewrite popup and as choices for your <strong>Default Tone</strong>. Exactly one tone is always marked default, and it can't be deleted until you pick a different one.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add a New Tone</div>
+      <div class="new-tone-row">
+        <button type="button" class="emoji-pick-btn" id="new-tone-emoji-btn" data-emoji="💬" title="Choose an icon">💬</button>
+        <div class="field">
+          <label>NAME <span style="font-weight:400;color:var(--text-muted)">(max 20 characters)</span></label>
+          <input type="text" id="new-tone-label" placeholder="e.g. Hype" maxlength="20">
+        </div>
+      </div>
+      <div class="field">
+        <label>AI PROMPT <span style="font-weight:400;color:var(--text-muted)">(tells the AI how to rewrite text in this tone)</span></label>
+        <textarea id="new-tone-prompt" placeholder="e.g. Hype and energetic — like a coach pumping someone up before a big game. Bold claims, short punchy sentences, lots of energy."></textarea>
+      </div>
+      <button class="add-model-btn" id="add-tone-btn">+ Add Tone</button>
+      <div class="test-result" id="tone-msg" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Tones</div>
+      <div class="hint" style="margin-bottom:12px">Sorted alphabetically. Toggle a tone on/off, pick your default, or edit its icon, name, and AI prompt — changes save automatically.</div>
+      <div class="tone-table">
+        <div class="tone-table-header">
+          <span title="Enabled">On</span>
+          <span title="Default tone">Default</span>
+          <span>Icon</span>
+          <span class="col-name">Name</span>
+          <span></span>
+        </div>
+        <div id="tone-list"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" id="restore-tones-btn">↺ Restore Default Tones</button>
+      </div>
+      <div class="test-result" id="tone-list-msg" style="display:none"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══ TAB: Language ═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-language">
+
+  <div class="card">
+    <div class="card-title">Session Language Selector</div>
+    <div class="field">
+      <div class="setting-toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="show-lang-selector">
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="toggle-info">
+          <strong>Show language selector in writing panel</strong>
+          <span>When enabled, a Language row appears in the writing assistant popup and pop-out window, letting you switch the output language per session without changing your default.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Output Language</div>
+    <div class="field">
+      <label>WRITE OUTPUT IN</label>
+      <div class="lang-grid" id="lang-grid">
+        <button class="lang-opt active" data-lang="English (US)"><span class="lang-flag">🇺🇸</span> English (US)</button>
+        <button class="lang-opt" data-lang="English (UK)"><span class="lang-flag">🇬🇧</span> English (UK)</button>
+        <button class="lang-opt" data-lang="Spanish (Spain)"><span class="lang-flag">🇪🇸</span> Spanish (Spain)</button>
+        <button class="lang-opt" data-lang="Spanish (Latin America)"><span class="lang-flag">🌎</span> Spanish (LatAm)</button>
+        <button class="lang-opt" data-lang="French"><span class="lang-flag">🇫🇷</span> French</button>
+        <button class="lang-opt" data-lang="German"><span class="lang-flag">🇩🇪</span> German</button>
+        <button class="lang-opt" data-lang="Italian"><span class="lang-flag">🇮🇹</span> Italian</button>
+        <button class="lang-opt" data-lang="Portuguese (Brazil)"><span class="lang-flag">🇧🇷</span> Portuguese (BR)</button>
+        <button class="lang-opt" data-lang="Portuguese (Portugal)"><span class="lang-flag">🇵🇹</span> Portuguese (PT)</button>
+        <button class="lang-opt" data-lang="Dutch"><span class="lang-flag">🇳🇱</span> Dutch</button>
+        <button class="lang-opt" data-lang="Russian"><span class="lang-flag">🇷🇺</span> Russian</button>
+        <button class="lang-opt" data-lang="Chinese"><span class="lang-flag">🇨🇳</span> Chinese</button>
+        <button class="lang-opt" data-lang="Japanese"><span class="lang-flag">🇯🇵</span> Japanese</button>
+        <button class="lang-opt" data-lang="Korean"><span class="lang-flag">🇰🇷</span> Korean</button>
+        <button class="lang-opt" data-lang="Arabic"><span class="lang-flag">🇸🇦</span> Arabic</button>
+        <button class="lang-opt" data-lang="Hindi"><span class="lang-flag">🇮🇳</span> Hindi</button>
+        <button class="lang-opt" data-lang="Polish"><span class="lang-flag">🇵🇱</span> Polish</button>
+        <button class="lang-opt" data-lang="Swedish"><span class="lang-flag">🇸🇪</span> Swedish</button>
+      </div>
+      <div class="hint" style="margin-top:10px">The AI will output corrected or rewritten text in the selected language. Set to English to match the language of whatever you're editing.</div>
+      <div class="lang-disclaimer">
+        ⚠ <strong>Note:</strong> Not all languages are supported by every model. Smaller and open-source models (Mistral 7B, Llama 8B, etc.) may produce lower-quality results or default back to English for less common languages. For best multilingual results, use <strong>GPT-4o</strong>, <strong>Claude Sonnet</strong>, or <strong>Gemini 1.5 Pro</strong>.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB: Appearance ══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-appearance">
+
+  <div class="card">
+    <div class="card-title">Theme</div>
+    <div class="field">
+      <label>SELECT A THEME</label>
+      <div class="hint" style="margin-bottom:10px">Applies to the in-page writing assistant, popup window, and browser action. Each swatch shows the primary background, container background, text color, and accent color.</div>
+      <div class="theme-grid" id="theme-grid">
+
+        <div class="theme-section-label">Light Themes</div>
+
+        <div class="theme-card active" data-theme="default">
+          <div class="theme-swatches"><div class="swatch" style="background:#f0edf8"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#1a1226"></div><div class="swatch" style="background:#6d28d9"></div></div>
+          <div class="theme-name">Default</div>
+        </div>
+
+        <div class="theme-card" data-theme="lavender">
+          <div class="theme-swatches"><div class="swatch" style="background:#faf5ff"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#3b0764"></div><div class="swatch" style="background:#8b5cf6"></div></div>
+          <div class="theme-name">Lavender</div>
+        </div>
+
+        <div class="theme-card" data-theme="rose">
+          <div class="theme-swatches"><div class="swatch" style="background:#fdf2f8"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#500724"></div><div class="swatch" style="background:#be185d"></div></div>
+          <div class="theme-name">Rose</div>
+        </div>
+
+        <div class="theme-card" data-theme="sakura">
+          <div class="theme-swatches"><div class="swatch" style="background:#fff1f2"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#4c0519"></div><div class="swatch" style="background:#e11d48"></div></div>
+          <div class="theme-name">Sakura</div>
+        </div>
+
+        <div class="theme-card" data-theme="crimson">
+          <div class="theme-swatches"><div class="swatch" style="background:#fff8f6"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#2d0e0e"></div><div class="swatch" style="background:#7f1d1d"></div></div>
+          <div class="theme-name">Crimson</div>
+        </div>
+
+        <div class="theme-card" data-theme="copper">
+          <div class="theme-swatches"><div class="swatch" style="background:#fffbeb"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#451a03"></div><div class="swatch" style="background:#b45309"></div></div>
+          <div class="theme-name">Copper</div>
+        </div>
+
+        <div class="theme-card" data-theme="stone">
+          <div class="theme-swatches"><div class="swatch" style="background:#fafaf9"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#1c1917"></div><div class="swatch" style="background:#57534e"></div></div>
+          <div class="theme-name">Stone</div>
+        </div>
+
+        <div class="theme-card" data-theme="slate">
+          <div class="theme-swatches"><div class="swatch" style="background:#f3f4f6"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#111827"></div><div class="swatch" style="background:#374151"></div></div>
+          <div class="theme-name">Slate</div>
+        </div>
+
+        <div class="theme-card" data-theme="forest">
+          <div class="theme-swatches"><div class="swatch" style="background:#f0fdf4"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#052e16"></div><div class="swatch" style="background:#14532d"></div></div>
+          <div class="theme-name">Forest</div>
+        </div>
+
+        <div class="theme-card" data-theme="sage">
+          <div class="theme-swatches"><div class="swatch" style="background:#f7fee7"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#1a2e05"></div><div class="swatch" style="background:#4d7c0f"></div></div>
+          <div class="theme-name">Sage</div>
+        </div>
+
+        <div class="theme-card" data-theme="ocean">
+          <div class="theme-swatches"><div class="swatch" style="background:#ecfeff"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#0c2a3a"></div><div class="swatch" style="background:#0e7490"></div></div>
+          <div class="theme-name">Ocean</div>
+        </div>
+
+        <div class="theme-card" data-theme="arctic">
+          <div class="theme-swatches"><div class="swatch" style="background:#f0f9ff"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#0c4a6e"></div><div class="swatch" style="background:#0284c7"></div></div>
+          <div class="theme-name">Arctic</div>
+        </div>
+
+        <div class="theme-card" data-theme="cobalt">
+          <div class="theme-swatches"><div class="swatch" style="background:#eff6ff"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#1e3a8a"></div><div class="swatch" style="background:#1d4ed8"></div></div>
+          <div class="theme-name">Cobalt</div>
+        </div>
+
+        <div class="theme-card" data-theme="navy">
+          <div class="theme-swatches"><div class="swatch" style="background:#eef2f7"></div><div class="swatch" style="background:#ffffff"></div><div class="swatch" style="background:#0f2744"></div><div class="swatch" style="background:#1e3a5f"></div></div>
+          <div class="theme-name">Executive Navy</div>
+        </div>
+
+        <div class="theme-section-label">Dark Themes</div>
+
+        <div class="theme-card" data-theme="midnight">
+          <div class="theme-swatches"><div class="swatch" style="background:#0f0e1a"></div><div class="swatch" style="background:#1e1c2e"></div><div class="swatch" style="background:#e8e6f0"></div><div class="swatch" style="background:#312e81"></div></div>
+          <div class="theme-name">Midnight</div>
+        </div>
+
+        <div class="theme-card" data-theme="aubergine">
+          <div class="theme-swatches"><div class="swatch" style="background:#1a0533"></div><div class="swatch" style="background:#2d0d54"></div><div class="swatch" style="background:#e9d5ff"></div><div class="swatch" style="background:#7e22ce"></div></div>
+          <div class="theme-name">Aubergine</div>
+        </div>
+
+        <div class="theme-card" data-theme="matrix">
+          <div class="theme-swatches"><div class="swatch" style="background:#020c06"></div><div class="swatch" style="background:#0a1f0e"></div><div class="swatch" style="background:#4ade80"></div><div class="swatch" style="background:#166534"></div></div>
+          <div class="theme-name">Matrix</div>
+        </div>
+
+        <div class="theme-card" data-theme="deepsea">
+          <div class="theme-swatches"><div class="swatch" style="background:#042f2e"></div><div class="swatch" style="background:#134e4a"></div><div class="swatch" style="background:#99f6e4"></div><div class="swatch" style="background:#0f766e"></div></div>
+          <div class="theme-name">Deep Sea</div>
+        </div>
+
+        <div class="theme-card" data-theme="indigonight">
+          <div class="theme-swatches"><div class="swatch" style="background:#18181b"></div><div class="swatch" style="background:#27272a"></div><div class="swatch" style="background:#e4e4e7"></div><div class="swatch" style="background:#4f46e5"></div></div>
+          <div class="theme-name">Indigo Night</div>
+        </div>
+
+        <div class="theme-card" data-theme="eclipse">
+          <div class="theme-swatches"><div class="swatch" style="background:#111827"></div><div class="swatch" style="background:#1f2937"></div><div class="swatch" style="background:#f9fafb"></div><div class="swatch" style="background:#4b5563"></div></div>
+          <div class="theme-name">Eclipse</div>
+        </div>
+
+        <div class="theme-card" data-theme="obsidian">
+          <div class="theme-swatches"><div class="swatch" style="background:#09090b"></div><div class="swatch" style="background:#18181b"></div><div class="swatch" style="background:#e4e4e7"></div><div class="swatch" style="background:#3f3f46"></div></div>
+          <div class="theme-name">Obsidian</div>
+        </div>
+
+        <div class="theme-card" data-theme="espresso">
+          <div class="theme-swatches"><div class="swatch" style="background:#0c0700"></div><div class="swatch" style="background:#1a0e03"></div><div class="swatch" style="background:#fef9c3"></div><div class="swatch" style="background:#78350f"></div></div>
+          <div class="theme-name">Espresso</div>
+        </div>
+
+        <div class="theme-card" data-theme="bronze">
+          <div class="theme-swatches"><div class="swatch" style="background:#0a0700"></div><div class="swatch" style="background:#1a1100"></div><div class="swatch" style="background:#fef9c3"></div><div class="swatch" style="background:#d97706"></div></div>
+          <div class="theme-name">Bronze</div>
+        </div>
+
+        <div class="theme-card" data-theme="volcanic">
+          <div class="theme-swatches"><div class="swatch" style="background:#0c0500"></div><div class="swatch" style="background:#1c0c04"></div><div class="swatch" style="background:#fed7aa"></div><div class="swatch" style="background:#c2410c"></div></div>
+          <div class="theme-name">Volcanic</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB: Privacy ════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-privacy">
+
+  <div class="card">
+    <div class="card-title">Privacy &amp; Data Handling</div>
+
+    <div class="tips-box" style="margin-bottom:16px">
+      <strong>In short:</strong> your API key and settings are stored only on your device. Text you choose to rewrite is sent directly to the AI provider you've selected — PenPal AI Writing Assistant does not collect, store, or share it.
+    </div>
+
+    <div class="privacy-section">
+      <h3>API Keys &amp; Local Storage</h3>
+      <p>Your API key (or keys, if you've configured more than one provider) is stored locally in your browser and is used solely to authenticate requests to the provider you've selected. Your keys are never sent anywhere else — not to PenPal AI's developers, and not to any server other than the AI provider's own API.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>How Your Content Is Used</h3>
+      <p>When you submit text for rewriting — along with your selected tone, style, and language preferences — that content is sent directly to your chosen provider's API for the sole purpose of generating a rewritten response. PenPal AI Writing Assistant does not independently collect, log, sell, or share this content with any additional third party beyond the provider you've selected and whatever infrastructure is necessary to deliver that request.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>Third-Party AI Providers</h3>
+      <p>Each AI provider supported by this extension — including OpenRouter, OpenAI, Anthropic, Google, and any custom endpoint you configure — maintains its own privacy policy, data retention practices, security controls, and terms of service. Once your content reaches a provider, its handling is governed entirely by that provider's policies, not by this extension. We encourage you to review a provider's privacy and data-handling practices before connecting it.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>Your Responsibilities</h3>
+      <p>By configuring and using a third-party provider, you acknowledge that content you submit may be processed, logged, or retained by that provider in accordance with its own terms and privacy policy. You are responsible for independently determining whether a provider's practices meet your (or your organization's) legal, regulatory, security, and privacy requirements — particularly when working with sensitive, confidential, or regulated text.</p>
+    </div>
+
+  </div>
+
+</div>
+</div><!-- /tab-content -->
+
+<!-- Sticky save bar — hidden until there are unsaved changes -->
+<div class="save-bar" id="save-bar">
+  <button class="save-btn" id="save-btn">Save Settings</button>
+</div>
+
+<!-- Unsaved changes — drops from top, stays until saved -->
+<div id="unsaved-banner">
+  <div class="unsaved-dot"></div>
+  You have unsaved changes
+</div>
+
+<!-- Saved confirmation — drops from top, auto-hides -->
+<div id="saved-toast">
+  <span class="toast-icon">✓</span>
+  Settings saved!
+</div>
+
+<!-- Emoji picker — shared popover, positioned next to whichever trigger opened it -->
+<div class="emoji-picker-popover" id="emoji-picker-popover" style="display:none">
+  <input type="text" class="emoji-picker-search" id="emoji-picker-search" placeholder="Search emoji…">
+  <div class="emoji-picker-list" id="emoji-picker-list"></div>
+</div>
+
+<script src="penpal-settings.js"></script>
+</body>
+</html>
