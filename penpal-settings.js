@@ -418,6 +418,7 @@ let currentTheme    = "default";
 const LANGUAGE_MIGRATIONS = {
   "English":    "English (US)",
   "Spanish":    "Spanish (Spain)",
+  "French":     "French (France)",
   "Portuguese": "Portuguese (Brazil)",
 };
 let isDirty         = false;   // true only after user makes a change
