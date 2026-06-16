@@ -285,6 +285,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // ── Clear button — instantly wipes both the input and the result/error output ──
+  document.getElementById("pp-clear-btn").addEventListener("click", () => {
+    document.getElementById("pp-input").value = "";
+    userEditedInput = true;       // don't let a stale page selection silently repopulate this
+    lastSyncedSelection = "";
+    lastResult = "";
+
+    document.getElementById("pp-selection-notice").classList.remove("visible");
+
+    const aiWrap   = document.getElementById("pp-ai-wrap");
+    const resultEl = document.getElementById("pp-result");
+    const errorEl  = document.getElementById("pp-error");
+    const copyBtn  = document.getElementById("pp-copy-btn");
+
+    aiWrap.style.display = "none";
+    resultEl.textContent = "";
+    resultEl.style.display = "none";
+    errorEl.textContent = "";
+    errorEl.style.display = "none";
+    copyBtn.classList.remove("visible");
+
+    document.getElementById("pp-input").focus();
+  });
+
   // ── Live selection sync (pop-out only) ───────────────────────────────────
   // While this pop-out window stays open, highlighting new text on any tab
   // (or clicking "pop out" again from a fresh popup) updates the input here,
@@ -317,15 +341,39 @@ function applySyncedSelection(text, { force = false, autoRun = false } = {}) {
 
 // Hand off the current draft to a pop-out window (creating or focusing it),
 // then close this popup.
-function openPopout() {
+//
+// Every launch re-checks the page for active highlighted text rather than
+// trusting whatever is already sitting in #pp-input: if text is highlighted
+// right now, that always wins (even overriding old input); if nothing is
+// highlighted, the pop-out should open to a clean slate rather than carrying
+// over stale text from a previous session.
+async function openPopout() {
   const errorEl = document.getElementById("pp-error");
+
+  let liveSelection = "";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      const [{ result: selText }] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => window.getSelection()?.toString().trim() || ""
+      });
+      liveSelection = selText || "";
+    }
+  } catch (_) {
+    // Page might not allow scripting (chrome:// pages, new tab, etc.) — treat as no selection
+  }
+
+  const hasLiveSelection = liveSelection.length > 2;
+
   const draft = {
-    inputText: document.getElementById("pp-input").value,
+    // Highlighted text overrides any old input; otherwise start fresh (no stale carryover).
+    inputText: hasLiveSelection ? liveSelection : "",
     selectedTone,
     sessionLanguage,
-    lastResult,
-    hadPageSelection: document.getElementById("pp-selection-notice").classList.contains("visible"),
-    errorText: errorEl.style.display !== "none" ? errorEl.textContent : ""
+    lastResult: hasLiveSelection ? "" : lastResult,
+    hadPageSelection: hasLiveSelection,
+    errorText: (!hasLiveSelection && errorEl.style.display !== "none") ? errorEl.textContent : ""
   };
 
   chrome.runtime.sendMessage({ action: "openPopout", draft }, (res) => {

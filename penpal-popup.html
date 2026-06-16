@@ -550,6 +550,8 @@
     }
     .pp-btn-copy.visible { display: flex; }
     .pp-btn-copy:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
+    /* Clear button (You-wrote bubble) reuses the Copy button's look but is always shown */
+    .pp-btn-clear-visible { display: flex; }
 
     .pp-spin {
       width: 14px; height: 14px;
@@ -585,7 +587,13 @@
   <div class="pp-chat">
     <!-- YOU bubble -->
     <div class="pp-bubble-wrap pp-bubble-you">
-      <div class="pp-bubble-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> You wrote</div>
+      <div class="pp-bubble-label-row">
+        <div class="pp-bubble-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> You wrote</div>
+        <button class="pp-btn-copy pp-btn-clear-visible" id="pp-clear-btn" title="Clear input and result">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Clear
+        </button>
+      </div>
       <textarea class="pp-textarea" id="pp-input" placeholder="Paste or type text to improve… or highlight text on any page first"></textarea>
     </div>
 

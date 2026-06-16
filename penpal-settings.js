@@ -599,7 +599,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("writing-style").addEventListener("input", checkDirty);
   document.getElementById("custom-instructions").addEventListener("input", checkDirty);
-  document.getElementById("model-select").addEventListener("change", checkDirty);
+  document.getElementById("model-select").addEventListener("change", () => {
+    // A different model invalidates the previous test result — don't let it
+    // look like confirmation that this model works.
+    clearTestResult();
+    checkDirty();
+  });
 
   // ── Reveal key — visible by default, click to mask ────────────────────────
   const keyInput  = document.getElementById("api-key");
@@ -623,7 +628,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const testBtn = document.getElementById("test-btn");
     const testRes = document.getElementById("test-result");
 
-    if (!key) { showTestResult("error", "⚠ Please enter an API key first."); return; }
+    // Custom providers (e.g. local/homelab servers) often don't require a key —
+    // only built-in providers enforce one here.
+    if (!key && !isCustomProvider(currentProvider)) {
+      showTestResult("error", "⚠ Please enter an API key first.");
+      return;
+    }
 
     testBtn.disabled = true;
     testBtn.textContent = "Testing…";
@@ -838,6 +848,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Custom Providers — Test Connection (before saving) ────────────────────
   document.getElementById("test-provider-btn").addEventListener("click", testCustomProviderFromForm);
+
+  // ── Custom Providers — Debug Bubble collapse/expand ───────────────────────
+  document.getElementById("provider-debug-toggle").addEventListener("click", () => {
+    const body  = document.getElementById("provider-debug-body");
+    const caret = document.getElementById("provider-debug-caret");
+    const open  = body.style.display !== "none";
+    body.style.display = open ? "none" : "block";
+    caret.classList.toggle("open", !open);
+  });
 
   // ── Custom Providers — Cancel edit ────────────────────────────────────────
   document.getElementById("cancel-provider-edit-btn").addEventListener("click", cancelProviderEdit);
@@ -1118,6 +1137,8 @@ function selectProvider(id) {
   updateProviderUI();
   // Each provider keeps its own API key — swap the field to match
   document.getElementById("api-key").value = apiKeys[currentProvider] || "";
+  // A test result from the previous provider/model is no longer valid for this one
+  clearTestResult();
   markDirty();
 }
 
@@ -1211,12 +1232,14 @@ function showModelRecs(provider) {
           document.getElementById("model-select").value = model;
           // Only refresh the "Manage Default Providers" Built-in Defaults list if it's showing this same provider
           if (provider === customTabProvider) renderDefaultModelList(provider);
+          clearTestResult();
           checkDirty();
         });
         return;
       }
 
       document.getElementById("model-select").value = model;
+      clearTestResult();
       checkDirty();
     });
   });
@@ -1227,6 +1250,16 @@ function showTestResult(type, message) {
   el.textContent = message;
   el.className = "test-result " + type;
   el.style.display = "block";
+}
+
+// Switching provider or model invalidates whatever test result is currently
+// showing — it described a different config and shouldn't be mistaken for
+// confirmation that this one works.
+function clearTestResult() {
+  const el = document.getElementById("test-result");
+  el.style.display = "none";
+  el.textContent = "";
+  el.className = "test-result";
 }
 
 // ── Manage Default Providers — model management ────────────────────────────
@@ -1667,27 +1700,30 @@ function renderNewProviderModelChips() {
 
 // ── Connectivity testing ──────────────────────────────────────────────────
 
-// Sends a tiny test prompt to an arbitrary endpoint/format/key/model combo —
-// used both for "Test Connection" on the unsaved form and could be reused elsewhere.
+// Sends an explicit, brief test prompt to an arbitrary endpoint/format/key/model
+// combo — used both for "Test Connection" on the unsaved form and could be
+// reused elsewhere. Always requests debug info (raw request/response) so
+// failures can be diagnosed instead of just reporting a bare network status.
 function runProviderTest({ endpoint, apiFormat, apiKey, model }, callback) {
   chrome.runtime.sendMessage({
     action: "callAI",
-    text: "Reply with the word OK.",
+    debug: true,
+    text: "Respond with the word 'Ready' if you can read this.",
     settings: {
       apiKey: apiKey || "",
       provider: "__custom_test__",
       model,
-      systemPrompt: "You are a connection test. Reply with only the word: OK",
+      systemPrompt: "You are a connection test. Respond with only the word: Ready",
       endpointOverrides: { __custom_test__: endpoint },
       apiFormat
     }
   }, (res) => {
     if (chrome.runtime.lastError) {
-      callback({ ok: false, error: chrome.runtime.lastError.message || "Unknown error" });
+      callback({ ok: false, error: chrome.runtime.lastError.message || "Unknown error", debug: null });
     } else if (res?.success) {
-      callback({ ok: true, result: res.result });
+      callback({ ok: true, result: res.result, debug: res.debug });
     } else {
-      callback({ ok: false, error: res?.error || "Unknown error" });
+      callback({ ok: false, error: res?.error || "Unknown error", debug: res?.debug });
     }
   });
 }
@@ -1699,6 +1735,57 @@ function showProviderTestResult(type, text) {
   el.style.display = "block";
 }
 
+// ── Debug Bubble (Custom Providers — local LLM testing) ────────────────────
+// Shows the exact JSON payload sent to the endpoint, the raw response, and
+// any parsing/format error — exclusive to custom model testing, where a
+// bare "connection failed" often isn't enough to debug a local server.
+
+function safeStringify(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string") {
+    // Try to pretty-print if it's JSON text; otherwise show as-is.
+    try { return JSON.stringify(JSON.parse(value), null, 2); } catch { return value; }
+  }
+  try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+}
+
+function renderProviderDebugBubble(debugInfo) {
+  const bubble = document.getElementById("provider-debug-bubble");
+  if (!debugInfo) { bubble.style.display = "none"; return; }
+
+  bubble.style.display = "block";
+
+  const reqEl = document.getElementById("provider-debug-request");
+  reqEl.textContent = debugInfo.requestBody
+    ? safeStringify(debugInfo.requestBody)
+    : "(request was not sent — see error below)";
+
+  const respSection = document.getElementById("provider-debug-response-section");
+  const respEl      = document.getElementById("provider-debug-response");
+  if (debugInfo.rawResponse) {
+    respSection.style.display = "block";
+    respEl.textContent = safeStringify(debugInfo.rawResponse);
+  } else {
+    respSection.style.display = "none";
+  }
+
+  const errSection = document.getElementById("provider-debug-error-section");
+  const errEl       = document.getElementById("provider-debug-error");
+  const errText      = debugInfo.parseError || debugInfo.networkError || "";
+  if (errText) {
+    errSection.style.display = "block";
+    errEl.textContent = errText;
+  } else {
+    errSection.style.display = "none";
+  }
+
+  // Auto-expand the body whenever there's something worth looking at on failure
+  if (errText) {
+    document.getElementById("provider-debug-body").style.display = "block";
+    document.getElementById("provider-debug-caret").classList.add("open");
+  }
+}
+
 // Test using whatever is currently typed into the Add/Edit Custom Provider form —
 // nothing is saved by this action.
 function testCustomProviderFromForm() {
@@ -1706,6 +1793,8 @@ function testCustomProviderFromForm() {
   const apiFormat = document.getElementById("new-provider-format").value;
   const key       = document.getElementById("new-provider-key").value.trim();
   const model     = newProviderModels[0];
+
+  renderProviderDebugBubble(null);
 
   if (!endpoint) {
     showProviderTestResult("error", "⚠ Enter an API endpoint URL first.");
@@ -1735,9 +1824,17 @@ function testCustomProviderFromForm() {
       testBtn.disabled = false;
       testBtn.textContent = "Test Connection";
 
-      if (result.ok) {
-        const preview = (result.result || "").trim().slice(0, 300);
-        showProviderTestResult("success", `✓ Connection successful — your custom provider is responding correctly.`);
+      renderProviderDebugBubble(result.debug);
+
+      // Deep health check: a successful HTTP handshake isn't enough — the
+      // model must actually return a usable, non-empty text string.
+      const reply = (result.ok ? result.result : "") || "";
+      const looksValid = result.ok && typeof reply === "string" && reply.trim().length > 0;
+
+      if (looksValid) {
+        showProviderTestResult("success", `✓ Model responded correctly — your custom provider is operational. (Replied: "${reply.trim().slice(0, 80)}")`);
+      } else if (result.ok) {
+        showProviderTestResult("warn", `⚠ Connected, but the model returned an empty response — check the Debug details below for the raw payload and response.`);
       } else {
         showProviderTestResult("error", `✕ Connection failed: ${result.error}${model ? "" : " — if your server requires a model name, add one under Model Name(s) above and try again."}`);
       }
@@ -1765,6 +1862,7 @@ function resetProviderForm() {
   renderModelExamples();
 
   document.getElementById("provider-test-result").style.display = "none";
+  renderProviderDebugBubble(null);
 }
 
 function editCustomProvider(id) {
@@ -1796,6 +1894,7 @@ function editCustomProvider(id) {
 
   document.getElementById("provider-msg").style.display = "none";
   document.getElementById("provider-test-result").style.display = "none";
+  renderProviderDebugBubble(null);
 
   document.getElementById("provider-form-title").scrollIntoView({ behavior: "smooth", block: "start" });
 }

@@ -419,6 +419,64 @@
       color: var(--test-warn-color);
     }
 
+    /* ── Debug Bubble (Custom Providers — local LLM testing) ── */
+    .debug-bubble {
+      margin-top: 8px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      background: var(--bg-input);
+      overflow: hidden;
+    }
+    .debug-bubble-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 14px;
+      text-align: left;
+    }
+    .debug-bubble-toggle:hover { color: var(--text-primary); }
+    .debug-bubble-caret {
+      display: inline-block;
+      transition: transform 0.15s;
+      font-size: 10px;
+    }
+    .debug-bubble-caret.open { transform: rotate(90deg); }
+    .debug-bubble-body {
+      padding: 0 14px 12px;
+      border-top: 1px solid var(--border-input);
+    }
+    .debug-bubble-section { margin-top: 10px; }
+    .debug-bubble-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .debug-bubble-pre {
+      margin: 0;
+      background: var(--bg-input-btn);
+      border: 1px solid var(--border-input);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11.5px;
+      line-height: 1.5;
+      max-height: 260px;
+      overflow: auto;
+      padding: 10px 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .debug-bubble-pre-error { color: var(--test-error-color); }
+
     .provider-logo {
       width: 32px; height: 32px;
       border-radius: 8px;
@@ -1700,6 +1758,28 @@
       </div>
 
       <div class="test-result" id="provider-test-result" style="display:none"></div>
+
+      <div class="debug-bubble" id="provider-debug-bubble" style="display:none">
+        <button type="button" class="debug-bubble-toggle" id="provider-debug-toggle">
+          <span class="debug-bubble-caret" id="provider-debug-caret">▸</span>
+          🐛 Debug details
+        </button>
+        <div class="debug-bubble-body" id="provider-debug-body" style="display:none">
+          <div class="debug-bubble-section">
+            <div class="debug-bubble-label">Request payload sent to endpoint</div>
+            <pre class="debug-bubble-pre" id="provider-debug-request"></pre>
+          </div>
+          <div class="debug-bubble-section" id="provider-debug-response-section" style="display:none">
+            <div class="debug-bubble-label">Raw response received</div>
+            <pre class="debug-bubble-pre" id="provider-debug-response"></pre>
+          </div>
+          <div class="debug-bubble-section" id="provider-debug-error-section" style="display:none">
+            <div class="debug-bubble-label">Parsing / format error</div>
+            <pre class="debug-bubble-pre debug-bubble-pre-error" id="provider-debug-error"></pre>
+          </div>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn-secondary" id="test-provider-btn">Test Connection</button>
         <button class="add-model-btn" id="add-provider-btn">+ Add Provider</button>

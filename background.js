@@ -39,9 +39,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "callAI") {
-    callAIAPI(request.text, request.settings)
-      .then(result => sendResponse({ success: true, result }))
-      .catch(err => sendResponse({ success: false, error: err.message }));
+    callAIAPI(request.text, request.settings, { debug: !!request.debug })
+      .then(result => {
+        if (request.debug) sendResponse({ success: true, result: result.text, debug: result.debug });
+        else sendResponse({ success: true, result });
+      })
+      .catch(err => sendResponse({ success: false, error: err.message, debug: err.debug }));
     return true;
   }
   if (request.action === "openOptions") {
@@ -119,7 +122,7 @@ chrome.windows.onRemoved.addListener((windowId) => {
   });
 });
 
-async function callAIAPI(text, settings) {
+async function callAIAPI(text, settings, { debug = false } = {}) {
   const { apiKey, provider = "openrouter", model, systemPrompt, endpointOverrides, apiFormat } = settings;
 
   // Wrap the user text in clear delimiters so the model cannot confuse it with instructions
@@ -149,29 +152,29 @@ async function callAIAPI(text, settings) {
     headers["X-Title"] = "PenPal AI Writing Assistant";
   }
 
-  let body;
+  let bodyObj;
 
   if (format === "anthropic") {
-    body = JSON.stringify({
+    bodyObj = {
       model: model || "claude-haiku-4-5",
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: "user", content: safeUserContent }]
-    });
+    };
   } else if (format === "cohere") {
     // Cohere v2 chat API
-    body = JSON.stringify({
+    bodyObj = {
       model: model || "command-r",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: safeUserContent }
       ]
-    });
+    };
   } else {
     // OpenAI-compatible (works for OpenAI, OpenRouter, Mistral, Groq, Together,
     // Fireworks, DeepSeek, xAI, Google, and most local servers: Ollama, LM Studio,
     // vLLM, llama.cpp, text-generation-webui, etc.)
-    body = JSON.stringify({
+    bodyObj = {
       model: model || "openai/gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
@@ -179,27 +182,65 @@ async function callAIAPI(text, settings) {
       ],
       temperature: 0.4,
       max_tokens: 2000
-    });
+    };
   }
 
-  const response = await fetch(endpoint, { method: "POST", headers, body });
+  const body = JSON.stringify(bodyObj);
+
+  // Debug info accumulates as we go so it's available even if a later step throws.
+  const debugInfo = debug ? { endpoint, requestBody: bodyObj } : null;
+
+  let response;
+  try {
+    response = await fetch(endpoint, { method: "POST", headers, body });
+  } catch (err) {
+    if (debugInfo) debugInfo.networkError = err.message;
+    const wrapped = new Error(`Network error reaching endpoint: ${err.message}`);
+    wrapped.debug = debugInfo;
+    throw wrapped;
+  }
 
   if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
+    const rawErrText = await response.text().catch(() => "");
+    if (debugInfo) debugInfo.rawResponse = rawErrText;
+    const errData = (() => { try { return JSON.parse(rawErrText); } catch { return {}; } })();
     const msg = errData?.error?.message
       || errData?.message
       || `API error ${response.status}`;
-    throw new Error(msg);
+    const wrapped = new Error(msg);
+    wrapped.debug = debugInfo;
+    throw wrapped;
   }
 
-  const data = await response.json();
+  const rawResponseText = await response.text();
+  if (debugInfo) debugInfo.rawResponse = rawResponseText;
+
+  let data;
+  try {
+    data = JSON.parse(rawResponseText);
+  } catch (err) {
+    if (debugInfo) debugInfo.parseError = `Response was not valid JSON: ${err.message}`;
+    const wrapped = new Error("The server's response wasn't valid JSON — it may not be an OpenAI/Anthropic-compatible endpoint.");
+    wrapped.debug = debugInfo;
+    throw wrapped;
+  }
 
   // Extract raw text from provider-specific response shape
   const raw = format === "anthropic"
     ? (data.content?.[0]?.text || "")
     : (data.choices?.[0]?.message?.content || "");
 
-  return stripCommentary(stripThinkTags(raw));
+  if (!raw || typeof raw !== "string") {
+    if (debugInfo) debugInfo.parseError = `Response JSON did not contain the expected text field (${format === "anthropic" ? "content[0].text" : "choices[0].message.content"}).`;
+    const wrapped = new Error("Connected, but the response didn't contain a recognizable text reply.");
+    wrapped.debug = debugInfo;
+    throw wrapped;
+  }
+
+  const cleaned = stripCommentary(stripThinkTags(raw));
+
+  if (debug) return { text: cleaned, debug: debugInfo };
+  return cleaned;
 }
 
 /**
