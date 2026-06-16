@@ -438,6 +438,14 @@ let editingProviderId = null;    // id of the custom provider currently being ed
 // ── Init ──────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
 
+  // ── App version ─────────────────────────────────────────────────────────
+  const versionEl = document.getElementById("pp-app-version");
+  if (versionEl) {
+    try { versionEl.textContent = "v" + chrome.runtime.getManifest().version; }
+    catch { versionEl.textContent = ""; }
+  }
+
+
   // ── Tabs ────────────────────────────────────────────────────────────────
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {

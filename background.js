@@ -26,6 +26,13 @@ chrome.runtime.onInstalled.addListener((details) => {
     title: "✏️ Rewrite with PenPal AI",
     contexts: ["selection"]
   });
+
+  // Right-click the toolbar icon → "Open in new tab"
+  chrome.contextMenus.create({
+    id: "penpal-open-tab",
+    title: "🗖 Open PenPal AI in new tab",
+    contexts: ["action"]
+  });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -34,6 +41,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       action: "openPanelWithSelection",
       selectedText: info.selectionText
     });
+  }
+  if (info.menuItemId === "penpal-open-tab") {
+    chrome.tabs.create({ url: chrome.runtime.getURL("penpal-tab.html?tab=1") });
   }
 });
 
@@ -49,6 +59,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.action === "openOptions") {
     chrome.runtime.openOptionsPage();
+  }
+
+  // ── Full browser tab ──────────────────────────────────────────────────
+  if (request.action === "openTab") {
+    chrome.tabs.create({ url: chrome.runtime.getURL("penpal-tab.html?tab=1") });
+    sendResponse({ success: true });
+    return true;
   }
 
   // ── Pop-out window ────────────────────────────────────────────────────

@@ -65,9 +65,10 @@ let selectedTone    = "";
 let sessionLanguage = null; // null = use settings default; session-only override
 let lastResult      = "";
 
-// ── Pop-out support ──────────────────────────────────────────────────────
-const params = new URLSearchParams(location.search);
+// ── Pop-out / full-tab support ───────────────────────────────────────────
+const params       = new URLSearchParams(location.search);
 const isStandalone = params.get("standalone") === "1";
+const isFullTab    = params.get("tab") === "1";
 
 let userEditedInput     = false;  // becomes true once the person types in #pp-input
 let lastSyncedSelection = "";     // last page-selection text we wrote into #pp-input
@@ -81,6 +82,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (isStandalone) {
     document.body.classList.add("pp-standalone");
     document.getElementById("pp-brand-tag").textContent = "Pop-out window — syncs with page selection";
+  }
+
+  if (isFullTab) {
+    document.body.classList.add("pp-full-tab");
+    document.getElementById("pp-brand-tag").textContent = "Full browser tab";
   }
 
   // ── No-key banner ────────────────────────────────────────────────────────
@@ -108,11 +114,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     chrome.runtime.openOptionsPage();
   });
 
+  // ── Full-tab button ──────────────────────────────────────────────────────
+  const tabBtn = document.getElementById("pp-tab-btn");
+  if (tabBtn) {
+    if (isFullTab || isStandalone) {
+      // Already in a full tab or pop-out — hide button
+      tabBtn.style.display = "none";
+    } else {
+      tabBtn.addEventListener("click", () => openFullTab());
+    }
+  }
+
   // ── Pop-out button ───────────────────────────────────────────────────────
   const popoutBtn = document.getElementById("pp-popout-btn");
-  if (isStandalone) {
-    // Already in a pop-out window — no point offering to pop out again
-    popoutBtn.style.display = "none";
+  if (isStandalone || isFullTab) {
+    // Already in an expanded view — hide the pop-out option
+    if (popoutBtn) popoutBtn.style.display = "none";
   } else {
     popoutBtn.addEventListener("click", () => openPopout());
   }
@@ -391,6 +408,14 @@ async function openPopout() {
   chrome.runtime.sendMessage({ action: "openPopout", draft }, (res) => {
     if (chrome.runtime.lastError) return; // extension context gone — nothing to do
     if (res?.success) window.close();
+  });
+}
+
+// Open a full browser tab with PenPal AI and close this popup.
+function openFullTab() {
+  chrome.runtime.sendMessage({ action: "openTab" }, () => {
+    if (chrome.runtime.lastError) return;
+    window.close();
   });
 }
 

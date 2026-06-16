@@ -17,7 +17,8 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
 - **Local / self-hosted LLM support** — Quick-fill templates for Ollama, LM Studio, llama.cpp, vLLM, and other OpenAI-compatible local servers. No API key required for local setups.
 - **Custom providers** — Add any OpenAI-compatible or Anthropic-compatible endpoint with a custom name, icon, and API format.
 - **Pop-out window** — Detach the assistant into a floating standalone window that stays open as you browse.
-- **Context menu integration** — Right-click any selected text and choose **✏️ Rewrite with PenPal AI** to open the panel with your selection pre-loaded.
+- **Full browser tab** — Open PenPal as a full browser tab with a two-column layout (input sidebar + result workspace). Click the expand icon (🗖) in the popup header, or right-click the toolbar icon and choose **🗖 Open PenPal AI in new tab**.
+- **Context menu integration** — Right-click any selected text and choose **✏️ Rewrite with PenPal AI** to open the panel with your selection pre-loaded. Right-click the toolbar icon to open PenPal in a new tab.
 - **Writing style notes** — Set a persistent personal style description (e.g. "avoid passive voice, keep sentences under 20 words") applied to every request.
 - **Customizable system prompt** — Override the default prompt entirely for full control over AI behavior.
 - **Per-provider model management** — Add custom models, hide models you don't use, and override API endpoints per provider.
@@ -80,7 +81,16 @@ On first install, the Settings page opens automatically so you can add your API 
 
 ### Pop-out window
 
-Click the **⤢ Pop out** button in the popup to open PenPal in a dedicated floating window. The window carries over your current draft and stays open across tab navigation.
+Click the **⧉** icon in the popup header to open PenPal in a dedicated floating window. The window carries over your current draft and stays open across tab navigation.
+
+### Full browser tab
+
+Open PenPal as a full browser tab two ways:
+
+- Click the **🗖 expand icon** in the popup header.
+- Right-click the PenPal toolbar icon and choose **🗖 Open PenPal AI in new tab**.
+
+The tab opens a two-column layout — input controls on the left, the AI result on the right — with all the same features as the popup. You can bookmark or pin the tab to keep PenPal always one click away.
 
 ---
 
@@ -89,9 +99,10 @@ Click the **⤢ Pop out** button in the popup to open PenPal in a dedicated floa
 ```
 penpal-ai/
 ├── manifest.json          # Extension manifest (Manifest V3)
-├── background.js          # Service worker — API calls, context menu, pop-out window management
+├── background.js          # Service worker — API calls, context menu, pop-out/tab management
 ├── penpal-popup.html      # Popup/pop-out window HTML
 ├── penpal-popup.js        # Popup logic — tone/language selection, rewrite flow, settings access
+├── penpal-tab.html        # Full browser tab — two-column layout (reuses penpal-popup.js)
 ├── penpal-content.js      # Content script — inline panel, text selection, page injection
 ├── penpal-content.css     # Styles for the inline panel
 ├── penpal-settings.html   # Settings page HTML

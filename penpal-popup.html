@@ -267,7 +267,8 @@
     .pp-brand-tag   { font-size: 10.5px; color: rgba(255,255,255,0.6); margin-top: 1px; }
     .pp-header-actions { display: flex; align-items: center; gap: 6px; }
     .pp-settings-btn,
-    .pp-popout-btn {
+    .pp-popout-btn,
+    .pp-tab-btn {
       background: rgba(255,255,255,0.18);
       border: none; border-radius: 8px;
       color: var(--t-on-accent);
@@ -280,8 +281,10 @@
       gap: 5px;
     }
     .pp-settings-btn:hover,
-    .pp-popout-btn:hover { background: rgba(255,255,255,0.3); opacity: 1; }
-    .pp-popout-btn { padding: 5px 7px; }
+    .pp-popout-btn:hover,
+    .pp-tab-btn:hover { background: rgba(255,255,255,0.3); opacity: 1; }
+    .pp-popout-btn,
+    .pp-tab-btn { padding: 5px 7px; }
 
     /* ── No-key banner ── */
     #pp-no-key {
@@ -574,6 +577,9 @@
       </div>
     </div>
     <div class="pp-header-actions">
+      <button class="pp-tab-btn" id="pp-tab-btn" title="Open in full browser tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
       <button class="pp-popout-btn" id="pp-popout-btn" title="Open in pop-out window">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
