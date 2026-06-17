@@ -93,7 +93,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Custom providers (e.g. local servers) often don't need a key — never warn for those.
   const noKeyBanner = document.getElementById("pp-no-key");
   const refreshNoKeyBanner = (s) => {
-    noKeyBanner.style.display = (!s.apiKey && !s.isCustomProvider) ? "block" : "none";
+    // Don't warn if we couldn't read storage — a read failure isn't a missing key.
+    const missing = !s._readError && !s.apiKey && !s.isCustomProvider;
+    noKeyBanner.style.display = missing ? "block" : "none";
   };
   refreshNoKeyBanner(settings);
   noKeyBanner.addEventListener("click", () => {
@@ -444,6 +446,7 @@ async function runAI() {
 
   try {
     const settings = await getSettings();
+    if (settings._readError) throw new Error("Couldn't read your settings — please try again in a moment.");
     if (!settings.apiKey && !settings.isCustomProvider) throw new Error("No API key set. Click ⚙ Settings to add one.");
 
     const result = await new Promise((resolve, reject) => {
@@ -481,12 +484,35 @@ async function runAI() {
   }
 }
 
-async function getSettings() {
+const SETTINGS_KEYS = [
+  "apiKey", "apiKeys", "provider", "model",
+  "defaultTone", "customInstructions", "writingStyle", "language", "theme", "endpointOverrides", "customTones", "customProviders", "showLangSelector", "showToneSelector"
+];
+
+// Reads settings with retries. A transient chrome.runtime.lastError (sleeping
+// service worker, momentary sync-storage hiccup) must not be mistaken for
+// "no settings" — that produced a false "No API key set" banner even when a
+// key was saved. On persistent failure we return a sentinel ({ _readError })
+// so callers can avoid falsely warning the user.
+async function getSettings(attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    const result = await readSettingsOnce();
+    if (!result._readError) return result;
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, 150));
+    else return result;
+  }
+}
+
+function readSettingsOnce() {
   return new Promise(resolve => {
-    chrome.storage.sync.get([
-      "apiKey", "apiKeys", "provider", "model",
-      "defaultTone", "customInstructions", "writingStyle", "language", "theme", "endpointOverrides", "customTones", "customProviders", "showLangSelector", "showToneSelector"
-    ], data => resolve(resolveSettings(data || {})));
+    try {
+      chrome.storage.sync.get(SETTINGS_KEYS, data => {
+        if (chrome.runtime.lastError) resolve({ _readError: true });
+        else resolve(resolveSettings(data || {}));
+      });
+    } catch (e) {
+      resolve({ _readError: true });
+    }
   });
 }
 
@@ -503,6 +529,7 @@ function resolveSettings(data) {
   if (apiKey === undefined) {
     apiKey = (data.apiKey && (data.provider || "openrouter") === provider) ? data.apiKey : "";
   }
+  apiKey = (typeof apiKey === "string" ? apiKey : "").trim();
 
   const customProvider = (data.customProviders || []).find(p => p.id === provider);
 

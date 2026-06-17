@@ -58,7 +58,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   if (request.action === "openOptions") {
-    chrome.runtime.openOptionsPage();
+    chrome.runtime.openOptionsPage(() => sendResponse({ success: !chrome.runtime.lastError }));
+    return true; // keep the message channel open for the async sendResponse
   }
 
   // ── Full browser tab ──────────────────────────────────────────────────

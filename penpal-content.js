@@ -470,8 +470,33 @@ function wirePopupEvents(text, settings) {
   });
 
   popup.querySelector("#aw-btn-settings").addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "openOptions" });
+    openSettingsPage();
   });
+}
+
+// Content scripts can't call chrome.runtime.openOptionsPage() directly, so we
+// ask the background service worker to open it. The message can fail silently
+// if the worker is asleep or the extension context was invalidated (e.g. the
+// extension was updated since this page loaded) — which made the button look
+// dead. Surface a clear, actionable error in those cases instead.
+function openSettingsPage() {
+  try {
+    chrome.runtime.sendMessage({ action: "openOptions" }, () => {
+      if (chrome.runtime.lastError) showSettingsOpenError();
+    });
+  } catch (e) {
+    // sendMessage threw synchronously — context invalidated
+    showSettingsOpenError();
+  }
+}
+
+function showSettingsOpenError() {
+  if (!popup) return;
+  const errEl = popup.querySelector("#aw-error");
+  if (!errEl) return;
+  errEl.innerHTML = `⚠ Couldn't open Settings — the extension may have been updated or reloaded. Please refresh this page (F5), then try again.`
+    + ` <br><br><button onclick="window.location.reload()" style="margin-top:6px;background:#6366f1;border:none;border-radius:7px;color:#fff;cursor:pointer;font-size:12px;font-weight:600;padding:6px 14px">↺ Reload Page</button>`;
+  errEl.style.display = "block";
 }
 
 function closePopup() {
@@ -507,6 +532,9 @@ async function runAI(text, _settingsAtOpen) {
     // popup first opened (or added while the popup is still on screen) is picked
     // up immediately — no page refresh required.
     const settings = await getSettings();
+    // A storage read failure is NOT the same as a missing key — don't show the
+    // misleading "No API key set" message; ask the user to refresh instead.
+    if (settings._readError) throw new Error("Couldn't read your settings — the extension may have been updated or reloaded. Please refresh this page (F5) and try again.");
     if (!settings.apiKey && !settings.isCustomProvider) throw new Error("No API key set. Click ⚙ Settings to add one.");
 
     const result = await new Promise((resolve, reject) => {
@@ -699,22 +727,39 @@ function doReplace(newText) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function getSettings() {
-  return new Promise((resolve, reject) => {
+const SETTINGS_KEYS = [
+  "apiKey","apiKeys","provider","model","defaultTone",
+  "customInstructions","writingStyle","language","theme","endpointOverrides","customTones","customProviders","showLangSelector","showToneSelector"
+];
+
+// Reads settings from storage with a few retries. A momentary
+// `chrome.runtime.lastError` (sleeping service worker, transient sync-storage
+// hiccup) must NOT be treated as "no settings" — doing so used to surface a
+// false "No API key set" error even when a key was saved. Instead we retry,
+// and only on persistent failure return a sentinel ({ _readError: true }) so
+// callers can tell a read failure apart from a genuinely-missing key.
+async function getSettings(attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    const result = await readSettingsOnce();
+    if (!result._readError) return result;
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, 150));
+    else return result; // exhausted retries — surface the read error
+  }
+}
+
+function readSettingsOnce() {
+  return new Promise(resolve => {
     try {
-      chrome.storage.sync.get([
-        "apiKey","apiKeys","provider","model","defaultTone",
-        "customInstructions","writingStyle","language","theme","endpointOverrides","customTones","customProviders","showLangSelector","showToneSelector"
-      ], data => {
+      chrome.storage.sync.get(SETTINGS_KEYS, data => {
         if (chrome.runtime.lastError) {
-          resolve({}); // fall through — runAI will catch missing apiKey
+          resolve({ _readError: true });
         } else {
           resolve(resolveSettings(data || {}));
         }
       });
     } catch (e) {
       // Extension context invalidated — storage API itself threw
-      resolve({});
+      resolve({ _readError: true });
     }
   });
 }
@@ -732,6 +777,9 @@ function resolveSettings(data) {
   if (apiKey === undefined) {
     apiKey = (data.apiKey && (data.provider || "openrouter") === provider) ? data.apiKey : "";
   }
+  // Normalise: treat a whitespace-only value as "no key" so the check below
+  // (and the no-key error) never trips on accidental blanks.
+  apiKey = (typeof apiKey === "string" ? apiKey : "").trim();
 
   const customProvider = (data.customProviders || []).find(p => p.id === provider);
 
