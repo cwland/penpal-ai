@@ -16,9 +16,14 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
   - OpenRouter, OpenAI, Anthropic, Google Gemini, Mistral, Meta (via OpenRouter), Groq, Cohere, Together AI, Fireworks AI, DeepSeek, xAI
 - **Local / self-hosted LLM support** — Quick-fill templates for Ollama, LM Studio, llama.cpp, vLLM, and other OpenAI-compatible local servers. No API key required for local setups.
 - **Custom providers** — Add any OpenAI-compatible or Anthropic-compatible endpoint with a custom name, icon, and API format.
+- **Toolbar control menu** — Clicking the toolbar icon opens a compact launcher (not a chat window) with **Settings**, **Pop-Out**, **Full Screen**, and **Side Panel**. Every option opens the same PenPal interface, so your tools are identical wherever you launch it.
+- **Resizable side panel** — A slide-out panel that docks to the right of the page and reflows the page beside it. Drag its left edge to resize; the width is remembered on every page and across sessions, and it reopens automatically as you move between pages within a session. Toggle it from the menu, the floating edge launcher, or `Ctrl/⌘+Shift+P`.
 - **Pop-out window** — Detach the assistant into a floating standalone window that stays open as you browse.
-- **Full browser tab** — Open PenPal as a full browser tab with a two-column layout (input sidebar + result workspace). Click the expand icon (🗖) in the popup header, or right-click the toolbar icon and choose **🗖 Open PenPal AI in new tab**.
+- **Full screen tab** — Open PenPal as a full browser tab with a two-column layout (input sidebar + result workspace). Launch it from the toolbar menu's **Full Screen**, or right-click the toolbar icon and choose **🗖 Open PenPal AI in new tab**.
 - **Context menu integration** — Right-click any selected text and choose **✏️ Rewrite with PenPal AI** to open the panel with your selection pre-loaded. Right-click the toolbar icon to open PenPal in a new tab.
+- **Smart model list** — The model picker validates against your provider on load and only lists models your API key can actually use, so you never pick one that errors.
+- **Auto-growing input** — The text box starts at one line, grows row-by-row as you type or paste (up to five lines, then scrolls), and collapses back when cleared.
+- **Version display & update checks** — The current version shows next to the PenPal branding in every view. Side-loaded installs check this repo's `version.json` (max once per 24h) and show a small, non-blocking toast when a newer release is available. Web Store builds skip update checks entirely.
 - **Writing style notes** — Set a persistent personal style description (e.g. "avoid passive voice, keep sentences under 20 words") applied to every request.
 - **Customizable system prompt** — Override the default prompt entirely for full control over AI behavior.
 - **Per-provider model management** — Add custom models, hide models you don't use, and override API endpoints per provider.
@@ -58,12 +63,24 @@ On first install, the Settings page opens automatically so you can add your API 
 
 ## Usage
 
-### From the popup
+### From the toolbar menu
 
-1. Click the PenPal AI toolbar icon.
-2. Type or paste text into the input box.
-3. Select a tone chip (and optionally a language).
-4. Click **Rewrite** — the result appears below with options to copy or replace the original.
+1. Click the PenPal AI toolbar icon — a compact menu opens.
+2. Choose how you want to work: **Settings**, **Pop-Out**, **Full Screen**, or **Side Panel**.
+3. In whichever view opens, type or paste text (or use your page selection), pick a tone and optional language, and click **Rewrite**.
+4. The result appears with options to copy or replace the original.
+
+### Side panel
+
+1. Open it from the toolbar menu's **Side Panel**, the floating pencil launcher on the right edge of the page, or `Ctrl/⌘+Shift+P`.
+2. PenPal docks to the side and the page reflows beside it.
+3. Drag the panel's left edge to resize it — your width is saved per page and across sessions.
+4. Highlight text on the page and it loads straight into the panel.
+
+### Keyboard shortcuts
+
+- `Ctrl/⌘+Shift+A` — open PenPal with the current selection.
+- `Ctrl/⌘+Shift+P` — toggle the side panel open or closed.
 
 ### Inline on any page
 
@@ -81,16 +98,16 @@ On first install, the Settings page opens automatically so you can add your API 
 
 ### Pop-out window
 
-Click the **⧉** icon in the popup header to open PenPal in a dedicated floating window. The window carries over your current draft and stays open across tab navigation.
+Choose **Pop-Out** from the toolbar menu to open PenPal in a dedicated floating window. It picks up any highlighted text when opened and stays open across tab navigation.
 
-### Full browser tab
+### Full screen tab
 
 Open PenPal as a full browser tab two ways:
 
-- Click the **🗖 expand icon** in the popup header.
+- Choose **Full Screen** from the toolbar menu.
 - Right-click the PenPal toolbar icon and choose **🗖 Open PenPal AI in new tab**.
 
-The tab opens a two-column layout — input controls on the left, the AI result on the right — with all the same features as the popup. You can bookmark or pin the tab to keep PenPal always one click away.
+The tab opens a two-column layout — input controls on the left, the AI result on the right — with all the same features as the side panel and pop-out. You can bookmark or pin the tab to keep PenPal always one click away.
 
 ---
 
@@ -99,18 +116,24 @@ The tab opens a two-column layout — input controls on the left, the AI result 
 ```
 penpal-ai/
 ├── manifest.json          # Extension manifest (Manifest V3)
-├── background.js          # Service worker — API calls, context menu, pop-out/tab management
-├── penpal-popup.html      # Popup/pop-out window HTML
-├── penpal-popup.js        # Popup logic — tone/language selection, rewrite flow, settings access
-├── penpal-tab.html        # Full browser tab — two-column layout (reuses penpal-popup.js)
-├── penpal-content.js      # Content script — inline panel, text selection, page injection
-├── penpal-content.css     # Styles for the inline panel
+├── version.json           # Remote version file for the side-loaded update checker
+├── background.js          # Service worker — API calls, context menu, pop-out/tab mgmt, model validation, update checks
+├── penpal-menu.html       # Toolbar icon control menu (Settings / Pop-Out / Full Screen / Side Panel)
+├── penpal-menu.js         # Control menu logic
+├── penpal-popup.html      # Pop-out window HTML (chat interface)
+├── penpal-popup.js        # Popup/pop-out logic — tone/language selection, rewrite flow, settings access
+├── penpal-tab.html        # Full screen tab — two-column layout (reuses penpal-popup.js)
+├── penpal-tab.js          # Full screen tab logic
+├── penpal-models.js       # Shared model presets, live model validation, model picker, update toast
+├── penpal-content.js      # Content script — inline panel, side panel, text selection, page injection
+├── penpal-content.css     # Styles for the inline/side panel
 ├── penpal-settings.html   # Settings page HTML
 ├── penpal-settings.js     # Settings page logic — providers, models, tones, language, style
 └── icons/
     ├── icon16.png
     ├── icon48.png
-    └── icon128.png
+    ├── icon128.png
+    └── logo.png
 ```
 
 ---
@@ -144,7 +167,9 @@ penpal-ai/
 | `contextMenus` | Add the right-click "Rewrite with PenPal AI" menu item |
 | `scripting` | Inject the content script on demand |
 | `clipboardWrite` | Copy AI results to the clipboard |
+| `alarms` | Schedule the daily side-loaded update check |
 | Host permissions (AI APIs) | Make direct API calls to the configured AI provider |
+| Host permission (`raw.githubusercontent.com`) | Fetch `version.json` for the side-loaded update check |
 | Optional host permissions (`http://*/*`, `https://*/*`) | Support inline rewriting on all websites |
 
 API keys are stored locally in Chrome's extension storage and are never sent anywhere except the AI provider endpoint you configure.
