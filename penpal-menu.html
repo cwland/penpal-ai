@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PenPal AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Default Theme Variables ── */
+    body {
+      --t-accent-1:     #6d28d9;
+      --t-accent-2:     #4f46e5;
+      --t-on-accent:    #ffffff;
+      --t-glow:         rgba(109,40,217,0.35);
+      --t-subtle:       rgba(109,40,217,0.10);
+      --t-ring:         rgba(109,40,217,0.30);
+      --t-surface:      #f0edf8;
+      --t-text:         #1a1226;
+      --t-panel-bg:     rgba(255,255,255,0.55);
+      --t-panel-border: rgba(109,40,217,0.10);
+      --t-chip-border:  #e5e7eb;
+      --t-you-bg:       #ffffff;
+      --t-you-fg:       #374151;
+      --t-you-label:    #6b7280;
+      --t-ai-label:     #7c3aed;
+
+      width: 400px;
+      background: var(--t-surface);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: var(--t-text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100px;
+    }
+
+    /* ── Named Themes ── */
+    body[data-theme="default"] {
+      --t-accent-1:     #6d28d9; --t-accent-2:     #4f46e5; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(109,40,217,0.35); --t-subtle:  rgba(109,40,217,0.10); --t-ring: rgba(109,40,217,0.30);
+      --t-surface:      #f0edf8; --t-text:         #1a1226;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(109,40,217,0.10);
+      --t-chip-border:  #e5e7eb; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #7c3aed;
+    }
+    body[data-theme="navy"] {
+      --t-accent-1:     #1e3a5f; --t-accent-2:     #1a3050; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(30,58,95,0.35); --t-subtle:  rgba(30,58,95,0.10); --t-ring: rgba(30,58,95,0.30);
+      --t-surface:      #eef2f7; --t-text:         #0f2744;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(30,58,95,0.10);
+      --t-chip-border:  #d1dae6; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #1e3a5f;
+    }
+    body[data-theme="slate"] {
+      --t-accent-1:     #374151; --t-accent-2:     #1f2937; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(55,65,81,0.35); --t-subtle:  rgba(55,65,81,0.10); --t-ring: rgba(55,65,81,0.30);
+      --t-surface:      #f3f4f6; --t-text:         #111827;
+      --t-panel-bg:     rgba(255,255,255,0.60); --t-panel-border: rgba(55,65,81,0.10);
+      --t-chip-border:  #d1d5db; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #9ca3af; --t-ai-label: #4b5563;
+    }
+    body[data-theme="forest"] {
+      --t-accent-1:     #14532d; --t-accent-2:     #166534; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(20,83,45,0.35); --t-subtle:  rgba(20,83,45,0.10); --t-ring: rgba(20,83,45,0.30);
+      --t-surface:      #f0fdf4; --t-text:         #052e16;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(20,83,45,0.10);
+      --t-chip-border:  #bbf7d0; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #15803d;
+    }
+    body[data-theme="ocean"] {
+      --t-accent-1:     #0e7490; --t-accent-2:     #0f766e; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(14,116,144,0.35); --t-subtle: rgba(14,116,144,0.10); --t-ring: rgba(14,116,144,0.30);
+      --t-surface:      #ecfeff; --t-text:         #0c2a3a;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(14,116,144,0.10);
+      --t-chip-border:  #a5f3fc; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #0e7490;
+    }
+    body[data-theme="crimson"] {
+      --t-accent-1:     #7f1d1d; --t-accent-2:     #991b1b; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(127,29,29,0.35); --t-subtle: rgba(127,29,29,0.10); --t-ring: rgba(127,29,29,0.30);
+      --t-surface:      #fff8f6; --t-text:         #2d0e0e;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(127,29,29,0.10);
+      --t-chip-border:  #fecaca; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #991b1b;
+    }
+    body[data-theme="midnight"] {
+      --t-accent-1:     #312e81; --t-accent-2:     #1e1b4b; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(99,102,241,0.40); --t-subtle: rgba(99,102,241,0.15); --t-ring: rgba(99,102,241,0.35);
+      --t-surface:      #0f0e1a; --t-text:         #e8e6f0;
+      --t-panel-bg:     rgba(0,0,0,0.30); --t-panel-border: rgba(99,102,241,0.15);
+      --t-chip-border:  #3730a3; --t-you-bg: #1e1c2e; --t-you-fg: #c9c6d8;
+      --t-you-label:    #9ca3af; --t-ai-label: #a5b4fc;
+    }
+    body[data-theme="matrix"] {
+      --t-accent-1:     #166534; --t-accent-2:     #052e16; --t-on-accent:    #4ade80;
+      --t-glow:         rgba(74,222,128,0.35); --t-subtle: rgba(74,222,128,0.12); --t-ring: rgba(74,222,128,0.35);
+      --t-surface:      #020c06; --t-text:         #4ade80;
+      --t-panel-bg:     rgba(0,0,0,0.40); --t-panel-border: rgba(74,222,128,0.15);
+      --t-chip-border:  #14532d; --t-you-bg: #0a1f0e; --t-you-fg: #86efac;
+      --t-you-label:    #22c55e; --t-ai-label: #4ade80;
+    }
+    body[data-theme="rose"] {
+      --t-accent-1:     #be185d; --t-accent-2:     #9d174d; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(190,24,93,0.35); --t-subtle: rgba(190,24,93,0.10); --t-ring: rgba(190,24,93,0.30);
+      --t-surface:      #fdf2f8; --t-text:         #500724;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(190,24,93,0.10);
+      --t-chip-border:  #fbcfe8; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #be185d;
+    }
+    body[data-theme="lavender"] {
+      --t-accent-1:     #8b5cf6; --t-accent-2:     #7c3aed; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(139,92,246,0.35); --t-subtle: rgba(139,92,246,0.10); --t-ring: rgba(139,92,246,0.30);
+      --t-surface:      #faf5ff; --t-text:         #3b0764;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(139,92,246,0.10);
+      --t-chip-border:  #e9d5ff; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #7c3aed;
+    }
+    body[data-theme="sakura"] {
+      --t-accent-1:     #e11d48; --t-accent-2:     #be123c; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(225,29,72,0.35); --t-subtle: rgba(225,29,72,0.10); --t-ring: rgba(225,29,72,0.30);
+      --t-surface:      #fff1f2; --t-text:         #4c0519;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(225,29,72,0.10);
+      --t-chip-border:  #fecdd3; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #e11d48;
+    }
+    body[data-theme="copper"] {
+      --t-accent-1:     #b45309; --t-accent-2:     #92400e; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(180,83,9,0.35); --t-subtle: rgba(180,83,9,0.10); --t-ring: rgba(180,83,9,0.30);
+      --t-surface:      #fffbeb; --t-text:         #451a03;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(180,83,9,0.10);
+      --t-chip-border:  #fde68a; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #b45309;
+    }
+    body[data-theme="stone"] {
+      --t-accent-1:     #57534e; --t-accent-2:     #44403c; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(87,83,78,0.35); --t-subtle: rgba(87,83,78,0.10); --t-ring: rgba(87,83,78,0.30);
+      --t-surface:      #fafaf9; --t-text:         #1c1917;
+      --t-panel-bg:     rgba(255,255,255,0.60); --t-panel-border: rgba(87,83,78,0.10);
+      --t-chip-border:  #d6d3d1; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #9ca3af; --t-ai-label: #57534e;
+    }
+    body[data-theme="sage"] {
+      --t-accent-1:     #4d7c0f; --t-accent-2:     #3f6212; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(77,124,15,0.35); --t-subtle: rgba(77,124,15,0.10); --t-ring: rgba(77,124,15,0.30);
+      --t-surface:      #f7fee7; --t-text:         #1a2e05;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(77,124,15,0.10);
+      --t-chip-border:  #d9f99d; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #4d7c0f;
+    }
+    body[data-theme="arctic"] {
+      --t-accent-1:     #0284c7; --t-accent-2:     #0369a1; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(2,132,199,0.35); --t-subtle: rgba(2,132,199,0.10); --t-ring: rgba(2,132,199,0.30);
+      --t-surface:      #f0f9ff; --t-text:         #0c4a6e;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(2,132,199,0.10);
+      --t-chip-border:  #bae6fd; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #0284c7;
+    }
+    body[data-theme="cobalt"] {
+      --t-accent-1:     #1d4ed8; --t-accent-2:     #1e40af; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(29,78,216,0.35); --t-subtle: rgba(29,78,216,0.10); --t-ring: rgba(29,78,216,0.30);
+      --t-surface:      #eff6ff; --t-text:         #1e3a8a;
+      --t-panel-bg:     rgba(255,255,255,0.55); --t-panel-border: rgba(29,78,216,0.10);
+      --t-chip-border:  #bfdbfe; --t-you-bg: #ffffff; --t-you-fg: #374151;
+      --t-you-label:    #6b7280; --t-ai-label: #1d4ed8;
+    }
+    body[data-theme="aubergine"] {
+      --t-accent-1:     #7e22ce; --t-accent-2:     #6b21a8; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(126,34,206,0.45); --t-subtle: rgba(126,34,206,0.15); --t-ring: rgba(126,34,206,0.35);
+      --t-surface:      #1a0533; --t-text:         #e9d5ff;
+      --t-panel-bg:     rgba(0,0,0,0.30); --t-panel-border: rgba(126,34,206,0.20);
+      --t-chip-border:  #581c87; --t-you-bg: #2d0d54; --t-you-fg: #d8b4fe;
+      --t-you-label:    #a855f7; --t-ai-label: #c084fc;
+    }
+    body[data-theme="deepsea"] {
+      --t-accent-1:     #0f766e; --t-accent-2:     #0d5f58; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(15,118,110,0.45); --t-subtle: rgba(15,118,110,0.15); --t-ring: rgba(15,118,110,0.35);
+      --t-surface:      #042f2e; --t-text:         #99f6e4;
+      --t-panel-bg:     rgba(0,0,0,0.30); --t-panel-border: rgba(15,118,110,0.20);
+      --t-chip-border:  #134e4a; --t-you-bg: #134e4a; --t-you-fg: #99f6e4;
+      --t-you-label:    #2dd4bf; --t-ai-label: #5eead4;
+    }
+    body[data-theme="indigonight"] {
+      --t-accent-1:     #4f46e5; --t-accent-2:     #4338ca; --t-on-accent:    #ffffff;
+      --t-glow:         rgba(79,70,229,0.40); --t-subtle: rgba(79,70,229,0.15); --t-ring: rgba(79,70,229,0.35);
+      --t-surface:      #18181b; --t-text:         #e4e4e7;
+      --t-panel-bg:     rgba(0,0,0,0.30); --t-panel-border: rgba(79,70,229,0.15);
+      --t-chip-border:  #3730a3; --t-you-bg: #27272a; --t-you-fg: #d4d4d8;
+      --t-you-label:    #a1a1aa; --t-ai-label: #818cf8;
+    }
+    body[data-theme="eclipse"] {
+      --t-accent-1:     #4b5563; --t-accent-2:     #374151; --t-on-accent:    #f9fafb;
+      --t-glow:         rgba(75,85,99,0.40); --t-subtle: rgba(75,85,99,0.15); --t-ring: rgba(75,85,99,0.35);
+      --t-surface:      #111827; --t-text:         #f9fafb;
+      --t-panel-bg:     rgba(0,0,0,0.30); --t-panel-border: rgba(75,85,99,0.20);
+      --t-chip-border:  #374151; --t-you-bg: #1f2937; --t-you-fg: #e5e7eb;
+      --t-you-label:    #9ca3af; --t-ai-label: #d1d5db;
+    }
+    body[data-theme="obsidian"] {
+      --t-accent-1:     #3f3f46; --t-accent-2:     #27272a; --t-on-accent:    #e4e4e7;
+      --t-glow:         rgba(63,63,70,0.40); --t-subtle: rgba(63,63,70,0.15); --t-ring: rgba(63,63,70,0.35);
+      --t-surface:      #09090b; --t-text:         #e4e4e7;
+      --t-panel-bg:     rgba(0,0,0,0.40); --t-panel-border: rgba(63,63,70,0.20);
+      --t-chip-border:  #27272a; --t-you-bg: #18181b; --t-you-fg: #d4d4d8;
+      --t-you-label:    #71717a; --t-ai-label: #a1a1aa;
+    }
+    body[data-theme="espresso"] {
+      --t-accent-1:     #78350f; --t-accent-2:     #5c2a0a; --t-on-accent:    #fef9c3;
+      --t-glow:         rgba(120,53,15,0.45); --t-subtle: rgba(120,53,15,0.15); --t-ring: rgba(120,53,15,0.35);
+      --t-surface:      #0c0700; --t-text:         #fef9c3;
+      --t-panel-bg:     rgba(0,0,0,0.35); --t-panel-border: rgba(120,53,15,0.20);
+      --t-chip-border:  #431407; --t-you-bg: #1a0e03; --t-you-fg: #fef9c3;
+      --t-you-label:    #d97706; --t-ai-label: #fbbf24;
+    }
+    body[data-theme="bronze"] {
+      --t-accent-1:     #d97706; --t-accent-2:     #b45309; --t-on-accent:    #0a0700;
+      --t-glow:         rgba(217,119,6,0.45); --t-subtle: rgba(217,119,6,0.12); --t-ring: rgba(217,119,6,0.35);
+      --t-surface:      #0a0700; --t-text:         #fef9c3;
+      --t-panel-bg:     rgba(217,119,6,0.08); --t-panel-border: rgba(217,119,6,0.15);
+      --t-chip-border:  #431407; --t-you-bg: #1a1100; --t-you-fg: #fef9c3;
+      --t-you-label:    #d97706; --t-ai-label: #fbbf24;
+    }
+    body[data-theme="volcanic"] {
+      --t-accent-1:     #c2410c; --t-accent-2:     #9a3412; --t-on-accent:    #fed7aa;
+      --t-glow:         rgba(194,65,12,0.45); --t-subtle: rgba(194,65,12,0.12); --t-ring: rgba(194,65,12,0.35);
+      --t-surface:      #0c0500; --t-text:         #fed7aa;
+      --t-panel-bg:     rgba(0,0,0,0.35); --t-panel-border: rgba(194,65,12,0.20);
+      --t-chip-border:  #431407; --t-you-bg: #1c0c04; --t-you-fg: #fed7aa;
+      --t-you-label:    #f97316; --t-ai-label: #fb923c;
+    }
+
+    /* ── Menu layout (compact control menu) ── */
+    body {
+      width: 240px;
+      background: var(--t-surface);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: var(--t-text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .pm-header {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 14px;
+      background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+      color: var(--t-on-accent);
+    }
+    .pm-logo {
+      width: 24px; height: 24px;
+      flex-shrink: 0;
+      display: block;
+      border-radius: 6px;
+    }
+    .pm-title { font-size: 15px; font-weight: 700; letter-spacing: 0.2px; }
+    .pm-version { font-size: 10px; font-weight: 600; opacity: 0.75; letter-spacing: 0; }
+    .pm-sub { font-size: 10.5px; opacity: 0.85; margin-top: 1px; }
+
+    .pm-menu { padding: 7px; display: flex; flex-direction: column; gap: 2px; }
+
+    .pm-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      width: 100%;
+      padding: 10px 11px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--t-text);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.05s ease;
+    }
+    .pm-item:hover { background: var(--t-subtle); }
+    .pm-item:focus-visible {
+      outline: none;
+      background: var(--t-subtle);
+      box-shadow: 0 0 0 2px var(--t-ring);
+    }
+    .pm-item:active { transform: translateY(0.5px); }
+
+    .pm-ico {
+      width: 26px; height: 26px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      background: var(--t-subtle);
+      color: var(--t-ai-label);
+    }
+    .pm-ico svg { width: 15px; height: 15px; }
+    .pm-label { flex: 1; }
+
+    .pm-note {
+      display: none;
+      padding: 8px 14px 11px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--t-you-label);
+    }
+    .pm-note.show { display: block; }
+  </style>
+</head>
+<body data-theme="default">
+  <div class="pm-header">
+    <img class="pm-logo" src="icons/logo.png" alt="">
+    <div>
+      <div class="pm-title">PenPal <span class="pm-version" id="pm-version"></span></div>
+      <div class="pm-sub">Your words, polished</div>
+    </div>
+  </div>
+
+  <nav class="pm-menu" aria-label="PenPal controls">
+    <button class="pm-item" id="pm-settings" type="button">
+      <span class="pm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <span class="pm-label">Settings</span>
+    </button>
+
+    <button class="pm-item" id="pm-popout" type="button">
+      <span class="pm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+      <span class="pm-label">Pop-Out</span>
+    </button>
+
+    <button class="pm-item" id="pm-fullscreen" type="button">
+      <span class="pm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></span>
+      <span class="pm-label">Full Screen</span>
+    </button>
+
+    <button class="pm-item" id="pm-sidepanel" type="button">
+      <span class="pm-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg></span>
+      <span class="pm-label">Side Panel</span>
+    </button>
+  </nav>
+
+  <div class="pm-note" id="pm-note"></div>
+
+  <script src="penpal-menu.js"></script>
+</body>
+</html>

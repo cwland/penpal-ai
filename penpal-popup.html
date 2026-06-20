@@ -236,7 +236,8 @@
       height: 100vh;
       min-height: 100vh;
     }
-    body.pp-standalone .pp-chat { flex: 1; }
+    body.pp-standalone #pp-chat-history,
+    body.pp-full-tab   #pp-chat-history { max-height: none; }
 
     /* ── Header ── */
     .pp-header {
@@ -264,8 +265,9 @@
       50%      { transform: translateY(-3px) rotate(3deg); }
     }
     .pp-brand-name  { font-size: 15px; font-weight: 800; color: var(--t-on-accent); letter-spacing: -0.02em; }
+    .pp-version     { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0; }
     .pp-brand-tag   { font-size: 10.5px; color: rgba(255,255,255,0.6); margin-top: 1px; }
-    .pp-header-actions { display: flex; align-items: center; gap: 6px; }
+    .pp-header-actions { display: flex; align-items: center; gap: 10px; }
     .pp-settings-btn,
     .pp-popout-btn,
     .pp-tab-btn {
@@ -315,70 +317,82 @@
     }
     #pp-selection-notice.visible { display: flex; }
 
-    /* ── Chat area ── */
-    .pp-chat {
+    /* ── Chat history (accumulating, SMS / iMessage style) ── */
+    #pp-chat-history {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 16px 10px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 14px 14px 10px;
+      gap: 16px;
+      min-height: 150px;
+      max-height: 340px;
+    }
+    #pp-chat-placeholder {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--t-you-label);
+      opacity: 0.4;
+      user-select: none;
+      text-align: center;
+      pointer-events: none;
+      padding: 24px 0;
     }
+    #pp-chat-placeholder svg { width: 32px; height: 32px; }
+    #pp-chat-placeholder h3  { font-size: 14px; font-weight: 600; }
+    #pp-chat-placeholder p   { font-size: 12px; }
 
-    /* Input area */
-    .pp-bubble-wrap { display: flex; flex-direction: column; gap: 5px; }
-    .pp-bubble-label {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 0 4px;
+    .chat-turn { display: flex; flex-direction: column; gap: 4px; }
+    .chat-turn-you { align-items: flex-start; }
+    .chat-turn-ai  { align-items: flex-end; }
+    .chat-turn-content {
+      display: flex; flex-direction: column; gap: 4px;
+      max-width: 82%; min-width: 100px;
     }
-    .pp-bubble-you .pp-bubble-label { color: var(--t-you-label); }
-
-    .pp-bubble-you .pp-textarea {
-      width: 100%;
-      background: var(--t-you-bg);
-      border: 1.5px solid var(--t-chip-border);
-      border-radius: 16px 16px 16px 4px;
+    .chat-bubble-label {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--t-you-label); padding: 0 4px;
+    }
+    .chat-ai-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .chat-ai-label { color: var(--t-ai-label); }
+    .chat-bubble {
+      border-radius: 16px; font-size: 13px; line-height: 1.65;
+      padding: 11px 14px; white-space: pre-wrap; word-break: break-word;
+    }
+    .chat-you-bubble {
+      background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+      color: var(--t-you-fg); border-radius: 16px 16px 16px 4px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      color: var(--t-you-fg);
-      font-family: inherit;
-      font-size: 13px;
-      line-height: 1.65;
-      min-height: 80px;
-      max-height: 160px;
-      outline: none;
-      padding: 11px 14px;
-      resize: vertical;
-      transition: border-color 0.15s;
     }
-    .pp-bubble-you .pp-textarea:focus { border-color: var(--t-accent-1); }
-    .pp-textarea::placeholder { color: var(--t-you-label); opacity: 0.6; }
-
-    /* AI result bubble */
-    .pp-bubble-ai { align-items: flex-end; }
-    .pp-result-bubble {
+    .chat-ai-bubble {
       background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
-      border-radius: 16px 16px 4px 16px;
+      color: var(--t-on-accent); border-radius: 16px 16px 4px 16px;
       box-shadow: 0 4px 16px var(--t-glow);
-      color: var(--t-on-accent);
-      font-size: 13px;
-      line-height: 1.68;
-      max-width: 100%;
-      padding: 12px 15px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      width: 100%;
     }
+    .chat-ai-loading { display: flex; align-items: center; padding: 13px 16px; }
+    .chat-error-bubble {
+      background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px;
+      color: #dc2626; font-size: 12.5px;
+    }
+    .chat-copy-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--t-subtle); border: 1.5px solid var(--t-ring);
+      border-radius: 20px; color: var(--t-ai-label); cursor: pointer;
+      font-family: inherit; font-size: 10.5px; font-weight: 600;
+      padding: 2px 9px; flex-shrink: 0; transition: all 0.12s; white-space: nowrap;
+    }
+    .chat-copy-btn:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
 
     /* Loading dots */
     .pp-dots {
-      background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
-      border-radius: 16px 16px 4px 16px;
-      box-shadow: 0 4px 16px var(--t-glow);
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 14px 18px;
-      align-self: flex-end;
     }
     .pp-dot {
       width: 7px; height: 7px;
@@ -499,13 +513,11 @@
       box-shadow: 0 2px 8px var(--t-glow);
     }
 
-    /* ── Action row ── */
+    /* ── Action row (nested in the input section) ── */
     .pp-actions {
-      background: var(--t-panel-bg);
-      border-top: 1px solid var(--t-panel-border);
       display: flex;
-      gap: 8px;
-      padding: 8px 14px 10px;
+      gap: 11px;
+      padding: 0 0 8px;
       flex-shrink: 0;
     }
 
@@ -523,6 +535,75 @@
     .pp-btn-run:hover:not(:disabled)  { filter: brightness(1.1); transform: translateY(-1px); }
     .pp-btn-run:active { transform: translateY(0); }
     .pp-btn-run:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Icon buttons in the action bar: tone / language / model */
+    .pp-btn-icon {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+      border-radius: 11px; color: var(--t-ai-label); cursor: pointer;
+      padding: 0; transition: border-color 0.12s, background 0.12s;
+    }
+    .pp-btn-icon:hover { border-color: var(--t-accent-1); background: var(--t-subtle); }
+    .pp-btn-icon svg { opacity: 0.85; }
+    .pp-icon-emoji { font-size: 17px; line-height: 1; }
+    /* Extra separation around the model selector */
+    .pp-btn-model-sep { margin-left: 6px; }
+
+    /* ── Lightweight hover tooltips (hover-capable devices only) ── */
+    @media (hover: hover) and (pointer: fine) {
+      .pp-tip { position: relative; }
+      .pp-tip::after {
+        content: attr(data-tip);
+        position: absolute; left: 50%; bottom: calc(100% + 7px);
+        transform: translateX(-50%) translateY(3px);
+        background: var(--t-accent-1); color: var(--t-on-accent);
+        font-size: 11px; font-weight: 700; line-height: 1; white-space: nowrap;
+        padding: 5px 8px; border-radius: 7px; box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.12s ease, transform 0.12s ease; transition-delay: 0s;
+        z-index: 99999;
+      }
+      .pp-tip:hover::after, .pp-tip:focus-visible::after {
+        opacity: 1; transform: translateX(-50%) translateY(0); transition-delay: 250ms;
+      }
+      .pp-tip-below::after { bottom: auto; top: calc(100% + 7px); transform: translateX(-50%) translateY(-3px); }
+      .pp-tip-below:hover::after, .pp-tip-below:focus-visible::after { transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Bottom input section */
+    .pp-input-section {
+      background: var(--t-panel-bg);
+      border-top: 1px solid var(--t-panel-border);
+      padding: 8px 14px 4px;
+      flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .pp-textarea-wrap { position: relative; }
+    .pp-textarea {
+      width: 100%;
+      background: var(--t-you-bg);
+      border: 1.5px solid var(--t-chip-border);
+      border-radius: 12px;
+      color: var(--t-you-fg);
+      font-family: inherit; font-size: 13px; line-height: 1.6;
+      min-height: 40px; overflow-y: hidden;
+      outline: none; padding: 10px 38px 10px 12px;
+      resize: none; transition: border-color 0.15s;
+    }
+    .pp-textarea:focus { border-color: var(--t-accent-1); }
+    .pp-textarea::placeholder { color: var(--t-you-label); opacity: 0.6; }
+    #pp-clear-btn {
+      position: absolute; top: 7px; right: 7px;
+      background: var(--t-subtle); border: 1px solid var(--t-ring);
+      border-radius: 100px; color: var(--t-ai-label); cursor: pointer;
+      font-family: inherit; font-size: 15px; line-height: 1;
+      width: 22px; height: 22px; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+    }
+    #pp-clear-btn:hover { background: var(--t-ring); }
 
     /* AI bubble label row — label + copy button side by side */
     .pp-bubble-label-row {
@@ -572,91 +653,53 @@
     <div class="pp-brand">
       <span class="pp-logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></span>
       <div>
-        <div class="pp-brand-name">PenPal AI</div>
+        <div class="pp-brand-name">PenPal AI <span class="pp-version" id="pp-version"></span></div>
         <div class="pp-brand-tag" id="pp-brand-tag">Your words, polished</div>
       </div>
     </div>
     <div class="pp-header-actions">
-      <button class="pp-tab-btn" id="pp-tab-btn" title="Open in full browser tab">
+      <button class="pp-tab-btn pp-tip pp-tip-below" id="pp-tab-btn" data-tip="Tab" aria-label="Open in full browser tab">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
-      <button class="pp-popout-btn" id="pp-popout-btn" title="Open in pop-out window">
+      <button class="pp-popout-btn pp-tip pp-tip-below" id="pp-popout-btn" data-tip="Pop out" aria-label="Open in pop-out window">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
-      <button class="pp-settings-btn" id="pp-settings-btn">⚙ Settings</button>
+      <button class="pp-settings-btn pp-tip pp-tip-below" id="pp-settings-btn" data-tip="Settings" aria-label="Settings">⚙</button>
     </div>
   </div>
 
   <button id="pp-no-key">🔑 No API key set — click to open Settings</button>
   <div id="pp-selection-notice">✦ Page text detected — loaded below</div>
 
-  <div class="pp-chat">
-    <!-- YOU bubble -->
-    <div class="pp-bubble-wrap pp-bubble-you">
-      <div class="pp-bubble-label-row">
-        <div class="pp-bubble-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> You wrote</div>
-        <button class="pp-btn-copy pp-btn-clear-visible" id="pp-clear-btn" title="Clear input and result">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          Clear
-        </button>
-      </div>
-      <textarea class="pp-textarea" id="pp-input" placeholder="Paste or type text to improve… or highlight text on any page first"></textarea>
-    </div>
-
-    <!-- AI bubble (hidden until result) -->
-    <div class="pp-bubble-wrap pp-bubble-ai" id="pp-ai-wrap" style="display:none">
-      <div class="pp-bubble-label-row">
-        <div class="pp-bubble-label">✦ PenPal suggests</div>
-        <button class="pp-btn-copy" id="pp-copy-btn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Copy
-        </button>
-      </div>
-      <div class="pp-dots" id="pp-dots">
-        <div class="pp-dot"></div>
-        <div class="pp-dot"></div>
-        <div class="pp-dot"></div>
-      </div>
-      <div class="pp-result-bubble" id="pp-result" style="display:none"></div>
-      <div class="pp-error" id="pp-error" style="display:none"></div>
+  <!-- Accumulating chat history (SMS / iMessage style) -->
+  <div id="pp-chat-history">
+    <div id="pp-chat-placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+      <h3>Your rewrite will appear here</h3>
+      <p>Type or paste text below, choose a tone, then Rewrite.</p>
     </div>
   </div>
 
-  <!-- Tone + Language section -->
-  <div class="pp-tone-section">
-
-    <!-- Tone compact summary row -->
-    <div class="pp-compact-row" id="pp-tone-row">
-      <span class="pp-compact-label">Tone</span>
-      <span class="pp-compact-sep">—</span>
-      <span class="pp-compact-value" id="pp-tone-value">😊 Casual</span>
-      <button class="pp-compact-more" id="pp-tone-more-btn">+ More</button>
+  <!-- Input + actions -->
+  <div class="pp-input-section">
+    <div class="pp-textarea-wrap">
+      <textarea class="pp-textarea" id="pp-input" rows="1" placeholder="Paste or type text to improve… or highlight text on any page first"></textarea>
+      <button id="pp-clear-btn" title="Clear input">&times;</button>
     </div>
-    <!-- Tone chips (hidden until expanded) -->
-    <div class="pp-tones" id="pp-tones-wrap"></div>
-
-    <div class="pp-row-divider" id="pp-lang-divider"></div>
-
-    <!-- Language compact summary row (session-only override) -->
-    <div class="pp-compact-row" id="pp-lang-row">
-      <span class="pp-compact-label">Language</span>
-      <span class="pp-compact-sep">—</span>
-      <span class="pp-compact-value" id="pp-lang-value">🇺🇸 English (US)</span>
-      <button class="pp-compact-more" id="pp-lang-more-btn">+ More</button>
+    <div class="pp-actions">
+      <button class="pp-btn-icon pp-tip" id="pp-tone-btn" data-tip="Tone" aria-label="Change tone"><span class="pp-icon-emoji" id="pp-tone-emoji">😊</span></button>
+      <button class="pp-btn-icon pp-tip" id="pp-lang-btn" data-tip="Language" aria-label="Change language"><span class="pp-icon-emoji" id="pp-lang-emoji">🇺🇸</span></button>
+      <button class="pp-btn-icon pp-tip pp-btn-model-sep" id="pp-model-btn" data-tip="Model" aria-label="Change model">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/><path d="M5 15l.6 1.6L7 17l-1.4.4L5 19l-.6-1.6L3 17l1.4-.4L5 15z"/></svg>
+      </button>
+      <button class="pp-btn-run" id="pp-run-btn">
+        <span id="pp-run-label">✦ Improve writing</span>
+        <div class="pp-spin" id="pp-spin" style="display:none"></div>
+      </button>
     </div>
-    <!-- Language chips (hidden until expanded; session-only) -->
-    <div class="pp-tones" id="pp-langs-wrap"></div>
-
   </div>
 
-  <!-- Actions -->
-  <div class="pp-actions">
-    <button class="pp-btn-run" id="pp-run-btn">
-      <span id="pp-run-label">✦ Rewrite with PenPal AI</span>
-      <div class="pp-spin" id="pp-spin" style="display:none"></div>
-    </button>
-  </div>
-
+  <script src="penpal-models.js"></script>
   <script src="penpal-popup.js"></script>
 </body>
 </html>

@@ -136,9 +136,33 @@ function escapeHTML(str) {
     .replace(/"/g, "&quot;");
 }
 
+// Auto-size a textarea: one line by default, growing up to `maxLines` lines,
+// then scrolling inside the box.
+function autoGrowTextarea(el, maxLines) {
+  if (!el) return;
+  const cs = getComputedStyle(el);
+  const lh = parseFloat(cs.lineHeight) || ((parseFloat(cs.fontSize) || 13) * 1.5);
+  const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const borderV = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  // Work in the element's own box model so the math holds whether the textarea
+  // is border-box (our pages) or content-box (varies inside injected pages).
+  const borderBox = cs.boxSizing === "border-box";
+  const frame = borderBox ? padV + borderV : 0;
+  const oneLine = Math.round(lh + frame);
+  const maxH = Math.round(lh * maxLines + frame);
+  // Reset to "auto" first so scrollHeight reports the true content height,
+  // then size to fit between one line and the max before scrolling.
+  el.style.height = "auto";
+  el.style.overflowY = "hidden";
+  const fitH = borderBox ? el.scrollHeight + borderV : el.scrollHeight - padV;
+  el.style.height = Math.max(oneLine, Math.min(fitH, maxH)) + "px";
+  el.style.overflowY = fitH > maxH ? "auto" : "hidden";
+}
+
 // ── State ──
 let selectedTone       = "";
 let sessionLanguage    = null;
+let sessionModel       = null; // session-only model override (null = use saved default)
 let _explicitRun       = false;
 let _snapshotText      = "";
 let _currentAiBubbleEl = null; // points to .chat-turn.chat-turn-ai of the LATEST exchange
@@ -154,26 +178,51 @@ const chatHistory = document.getElementById("chat-history");
 const placeholder = document.getElementById("chat-placeholder");
 const noKeyBanner = document.getElementById("pp-no-key");
 const selNotice   = document.getElementById("pp-selection-notice");
-const tonesWrap   = document.getElementById("pp-tones-wrap");
-const langsWrap   = document.getElementById("pp-langs-wrap");
-const toneMoreBtn = document.getElementById("pp-tone-more-btn");
-const langMoreBtn = document.getElementById("pp-lang-more-btn");
-const toneValueEl = document.getElementById("pp-tone-value");
-const langValueEl = document.getElementById("pp-lang-value");
-const toneRow     = document.getElementById("pp-tone-row");
-const langRow     = document.getElementById("pp-lang-row");
-const langDivider = document.getElementById("pp-lang-divider");
+const toneBtn     = document.getElementById("pp-tone-btn");
+const toneEmoji   = document.getElementById("pp-tone-emoji");
+const langBtn     = document.getElementById("pp-lang-btn");
+const langEmoji   = document.getElementById("pp-lang-emoji");
 
 // ── Init ──
 (async function init() {
   const settings = await getSettings();
   applyTheme(settings.theme);
+  try {
+    const vEl = document.getElementById("pp-version");
+    if (vEl) vEl.textContent = "v" + chrome.runtime.getManifest().version;
+  } catch (_) {}
+  if (typeof maybeShowUpdateToast === "function") maybeShowUpdateToast();
   await setupSelectors(settings);
   setupInput();
   setupClear();
+  await setupModelButton();
   refreshNoKeyBanner(settings);
   maybeLoadSelection();
 })();
+
+// ── Session model picker ──
+async function setupModelButton() {
+  const btn = document.getElementById("pp-model-btn");
+  if (!btn || typeof getLiveValidatedModels !== "function") return;
+  const { models, savedModel } = await getLiveValidatedModels();
+
+  // Default selection follows the saved model only if it's still valid;
+  // otherwise fall back to the first valid model.
+  sessionModel = (models.some(m => m.value === savedModel) ? savedModel : (models[0] && models[0].value)) || null;
+  const setTitle = () => { btn.setAttribute("aria-label", `Model: ${modelLabelFor(sessionModel, models)} — change for this session`); };
+  setTitle();
+
+  if (!models.length) { btn.disabled = true; btn.setAttribute("aria-label", "No models available — add one in Settings"); btn.removeAttribute("data-tip"); return; }
+
+  btn.addEventListener("click", () => {
+    openModelMenu(btn, models, sessionModel, (value) => {
+      sessionModel = value;
+      setTitle();
+      // Regenerate the latest turn with the new model if a conversation is active
+      if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
+    });
+  });
+}
 
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== "sync") return;
@@ -193,68 +242,43 @@ function refreshNoKeyBanner(settings) {
 }
 
 async function setupSelectors(settings) {
-  const showTone = settings.showToneSelector !== false;
-  const showLang = settings.showLangSelector !== false;
+  // ── Tone icon button → menu (always visible) ──
+  const tones = enabledTones(settings);
+  selectedTone = settings.defaultTone || "casual";
+  if (!tones.some(t => t.id === selectedTone)) selectedTone = tones[0]?.id || "casual";
 
-  // Tone
-  if (!showTone) {
-    toneRow.style.display = "none";
-    langDivider.style.display = "none";
-  } else {
-    const tones = enabledTones(settings);
-    selectedTone = settings.defaultTone || "casual";
-    if (!tones.some(t => t.id === selectedTone)) selectedTone = tones[0]?.id || "casual";
-
-    tonesWrap.innerHTML = tones.map(t =>
-      `<button class="pp-chip ${t.id === selectedTone ? "active" : ""}" data-tone="${escapeHTML(t.id)}">${escapeHTML(t.icon)} ${escapeHTML(t.label)}</button>`
-    ).join("");
-
-    const activeTone = tones.find(t => t.id === selectedTone) || tones[0];
-    toneValueEl.textContent = activeTone ? `${activeTone.icon} ${activeTone.label}` : "";
-
-    tonesWrap.addEventListener("click", e => {
-      const chip = e.target.closest(".pp-chip");
-      if (!chip) return;
-      selectedTone = chip.dataset.tone;
-      tonesWrap.querySelectorAll(".pp-chip").forEach(c => c.classList.toggle("active", c.dataset.tone === selectedTone));
-      const obj = tones.find(t => t.id === selectedTone);
-      toneValueEl.textContent = obj ? `${obj.icon} ${obj.label}` : selectedTone;
-      // Auto-regen only if a conversation is already active
-      if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
-    });
-
-    toneMoreBtn.addEventListener("click", () => {
-      const open = tonesWrap.classList.toggle("open");
-      toneMoreBtn.textContent = open ? "− Less" : "+ More";
+  const setToneIcon = () => {
+    const o = tones.find(t => t.id === selectedTone);
+    if (o) { if (toneEmoji) toneEmoji.textContent = o.icon; if (toneBtn) toneBtn.setAttribute("aria-label", `Tone — ${o.label}`); }
+  };
+  setToneIcon();
+  if (toneBtn) {
+    toneBtn.addEventListener("click", () => {
+      const items = tones.map(t => ({ value: t.id, label: `${t.icon} ${t.label}` }));
+      openModelMenu(toneBtn, items, selectedTone, (value) => {
+        selectedTone = value;
+        setToneIcon();
+        if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
+      }, "Tone");
     });
   }
 
-  // Language
-  if (!showLang) {
-    langRow.style.display = "none";
-    langDivider.style.display = "none";
-  } else {
-    const activeLangId = settings.language || "English (US)";
-    const initLang = SESSION_LANGUAGES.find(l => l.id === activeLangId) || SESSION_LANGUAGES[0];
-    langValueEl.textContent = initLang ? `${initLang.icon} ${initLang.label}` : activeLangId;
-
-    langsWrap.innerHTML = SESSION_LANGUAGES.map(l =>
-      `<button class="pp-lang-chip ${l.id === activeLangId ? "active" : ""}" data-lang="${escapeHTML(l.id)}">${escapeHTML(l.icon)} ${escapeHTML(l.label)}</button>`
-    ).join("");
-
-    langsWrap.addEventListener("click", e => {
-      const chip = e.target.closest(".pp-lang-chip");
-      if (!chip) return;
-      sessionLanguage = chip.dataset.lang;
-      langsWrap.querySelectorAll(".pp-lang-chip").forEach(c => c.classList.toggle("active", c.dataset.lang === sessionLanguage));
-      const obj = SESSION_LANGUAGES.find(l => l.id === sessionLanguage);
-      langValueEl.textContent = obj ? `${obj.icon} ${obj.label}` : sessionLanguage;
-      if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
-    });
-
-    langMoreBtn.addEventListener("click", () => {
-      const open = langsWrap.classList.toggle("open");
-      langMoreBtn.textContent = open ? "− Less" : "+ More";
+  // ── Language icon button → menu (session-only, always visible) ──
+  const setLangIcon = () => {
+    const id = sessionLanguage || settings.language || "English (US)";
+    const o = SESSION_LANGUAGES.find(l => l.id === id) || SESSION_LANGUAGES[0];
+    if (o) { if (langEmoji) langEmoji.textContent = o.icon; if (langBtn) langBtn.setAttribute("aria-label", `Language — ${o.label}`); }
+  };
+  setLangIcon();
+  if (langBtn) {
+    langBtn.addEventListener("click", () => {
+      const items = SESSION_LANGUAGES.map(l => ({ value: l.id, label: `${l.icon} ${l.label}` }));
+      const current = sessionLanguage || settings.language || "English (US)";
+      openModelMenu(langBtn, items, current, (value) => {
+        sessionLanguage = value;
+        setLangIcon();
+        if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
+      }, "Language (this session)");
     });
   }
 }
@@ -268,6 +292,9 @@ function setupInput() {
       runTab();
     }
   });
+  // Auto-grow the input: 1 line → up to 5, then scroll.
+  inputEl.addEventListener("input", () => autoGrowTextarea(inputEl, 5));
+  requestAnimationFrame(() => autoGrowTextarea(inputEl, 5));
   document.getElementById("pp-settings-btn").addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
   });
@@ -280,6 +307,7 @@ function setupClear() {
   clearBtn.addEventListener("click", () => {
     // Clear ONLY the input — conversation history is untouched
     inputEl.value = "";
+    autoGrowTextarea(inputEl, 5);
     inputEl.focus();
   });
 }
@@ -290,7 +318,7 @@ function maybeLoadSelection() {
   if (sel) {
     inputEl.value = decodeURIComponent(sel);
     selNotice.style.display = "flex";
-    updateClearBtn();
+    autoGrowTextarea(inputEl, 5);
     setTimeout(() => selNotice.style.display = "none", 4000);
   }
 }
@@ -416,7 +444,7 @@ async function runTab() {
   _explicitRun = false;
 
   runBtn.disabled = true;
-  runLabel.textContent = "Rewriting…";
+  runLabel.textContent = "Improving…";
   spin.style.display = "";
 
   if (isNewRewrite || !_currentAiBubbleEl) {
@@ -444,7 +472,11 @@ async function runTab() {
       chrome.runtime.sendMessage({
         action: "callAI",
         text: _snapshotText,
-        settings: { ...settings, systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage) }
+        settings: {
+          ...settings,
+          model: sessionModel || settings.model,
+          systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage)
+        }
       }, (res) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";
@@ -467,7 +499,7 @@ async function runTab() {
     _currentAiBubbleEl = null;
   } finally {
     runBtn.disabled = false;
-    runLabel.textContent = "✦ Rewrite with PenPal AI";
+    runLabel.textContent = "✦ Improve writing";
     spin.style.display = "none";
   }
 }

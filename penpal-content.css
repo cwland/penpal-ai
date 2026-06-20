@@ -505,30 +505,72 @@
   border-bottom: none;
 }
 
-#aw-tb button {
+/* The toolbar itself is now the styled pill — a compact bar holding the brand
+   mark, a Copy action, a divider and the Improve action. */
+#aw-tb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+  border-radius: 100px;
+  padding: 4px 6px 4px 10px;
+}
+
+/* PenPal brand mark on the far left */
+.aw-tb-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--t-on-accent);
+  opacity: 0.95;
+  margin-right: 2px;
+  pointer-events: none;
+}
+.aw-tb-brand svg { width: 16px; height: 16px; }
+
+/* Action buttons (Copy / Improve) */
+#aw-tb .aw-tb-act {
+  background: transparent;
   border: none;
   border-radius: 100px;
   color: var(--t-on-accent);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  padding: 9px 20px 9px 15px;
-  transition: filter 0.12s, transform 0.1s;
-  white-space: nowrap;
-}
-#aw-tb button:hover  { filter: brightness(1.15); transform: translateY(-1px); }
-#aw-tb button:active { transform: translateY(0); filter: brightness(0.95); }
-
-.aw-tb-icon {
   display: inline-flex;
   align-items: center;
-  width: 16px; height: 16px;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding: 7px 13px;
+  transition: background 0.12s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+#aw-tb .aw-tb-act:hover  { background: rgba(255,255,255,0.18); }
+#aw-tb .aw-tb-act:active { transform: translateY(0.5px); background: rgba(255,255,255,0.10); }
+#aw-tb .aw-tb-act:focus-visible {
+  outline: 2px solid var(--t-on-accent);
+  outline-offset: 1px;
+}
+#aw-tb .aw-tb-act.aw-tb-copied { background: rgba(255,255,255,0.22); }
+
+/* The primary "Improve" action reads slightly stronger */
+#aw-tb .aw-tb-primary { font-weight: 800; }
+
+.aw-tb-ico {
+  display: inline-flex;
+  align-items: center;
+  width: 15px; height: 15px;
+}
+.aw-tb-label { line-height: 1; }
+
+/* Vertical divider between the two actions */
+.aw-tb-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.32);
+  margin: 0 3px;
+  flex: 0 0 auto;
 }
 
 /* ── Backdrop overlay ────────────────────────────────────────────────────── */
@@ -602,6 +644,12 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
+}
+.aw-pop-version {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.7;
 }
 .aw-pop-tagline {
   font-size: 10.5px;
@@ -957,3 +1005,253 @@
   border-color: rgba(34,197,94,0.4);
   color: #15803d;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Floating launcher + slide-out side panel
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Floating launcher (pinned to the right edge, drag vertically) ────────── */
+#aw-launcher {
+  position: fixed;
+  right: 0;
+  top: 16px;                  /* default top-right; JS restores any saved position */
+  z-index: 2147483646;        /* just under the panel/popup */
+  width: 26px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%);
+  color: #ffffff;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -2px 3px 12px rgba(79,70,229,0.34), 0 0 0 1px rgba(255,255,255,0.08);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;         /* let pointer events drive the vertical drag */
+  transition: width 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
+}
+#aw-launcher:hover {
+  width: 32px;
+  box-shadow: -3px 5px 18px rgba(79,70,229,0.48), 0 0 0 1px rgba(255,255,255,0.12);
+}
+#aw-launcher:active { transform: scale(0.94); }
+#aw-launcher.aw-dragging { cursor: grabbing; transform: scale(0.96); transition: none; }
+#aw-launcher:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.aw-launcher-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;       /* clicks/drag handled by the launcher itself */
+}
+.aw-launcher-ico svg { width: 14px; height: 14px; }
+
+/* ── Docked side panel (reuses #aw-popup interface) ──────────────────────── */
+#aw-popup.aw-docked {
+  top: 0;
+  left: auto;
+  right: 0;
+  transform: translateX(100%);            /* hidden: off the right edge */
+  width: clamp(320px, 15vw, 440px);       /* ~15% of viewport, min usable */
+  max-width: 92vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  box-shadow: -16px 0 48px rgba(0,0,0,0.22), -1px 0 0 rgba(255,255,255,0.06);
+}
+#aw-popup.aw-docked.aw-popup-show {
+  transform: translateX(0);               /* slide fully into view */
+}
+
+/* In the panel, the chat area fills the available height so the Copy/Replace
+   action bar stays pinned to the bottom while the response scrolls. */
+#aw-popup.aw-docked .aw-chat-area {
+  max-height: none;
+  flex: 1 1 auto;
+}
+#aw-popup.aw-docked .aw-pop-footer {
+  position: sticky;
+  bottom: 0;
+}
+
+/* ── Side-panel resize handle (left edge of the docked panel) ─────────────── */
+#aw-popup.aw-docked .aw-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 5;
+  background: transparent;
+  transition: background 0.15s ease;
+  touch-action: none;
+}
+/* A subtle grip line that brightens on hover / during the drag. */
+#aw-popup.aw-docked .aw-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 42px;
+  border-radius: 3px;
+  background: rgba(127,127,127,0.35);
+  transition: background 0.15s ease, height 0.15s ease;
+}
+#aw-popup.aw-docked .aw-resize-handle:hover::before,
+#aw-popup.aw-resizing .aw-resize-handle::before {
+  background: var(--t-accent-1, #6d28d9);
+  height: 64px;
+}
+#aw-popup.aw-docked .aw-resize-handle:focus-visible {
+  outline: none;
+  background: var(--t-subtle, rgba(109,40,217,0.12));
+}
+/* While dragging, kill easing + text selection so resize feels instant. */
+#aw-popup.aw-resizing {
+  transition: none !important;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Accumulating chat turns (SMS / iMessage style) + composer + model button
+   ═══════════════════════════════════════════════════════════════ */
+
+/* The chat history container reuses .aw-chat-area for scroll/flex. */
+.aw-turn { display: flex; flex-direction: column; gap: 4px; }
+.aw-turn-you { align-items: flex-start; }
+.aw-turn-ai  { align-items: flex-end; }
+.aw-turn-content { display: flex; flex-direction: column; gap: 4px; max-width: 84%; min-width: 90px; }
+.aw-turn-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--t-you-label); padding: 0 6px;
+}
+.aw-turn-ai-label { color: var(--t-ai-label); }
+.aw-turn-bubble {
+  border-radius: 18px; font-size: 13.5px; line-height: 1.66;
+  padding: 11px 15px; white-space: pre-wrap; word-break: break-word;
+}
+.aw-turn-you-bubble {
+  background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+  color: var(--t-you-fg); border-radius: 18px 18px 18px 5px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.aw-turn-ai-bubble {
+  background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+  color: var(--t-on-accent); border-radius: 18px 18px 5px 18px;
+  box-shadow: 0 4px 16px var(--t-glow);
+}
+.aw-turn-loading { display: flex; align-items: center; gap: 6px; min-width: 70px; padding: 14px 18px; }
+.aw-turn-error {
+  background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px;
+  color: #dc2626; font-size: 12.5px; line-height: 1.55; padding: 11px 14px;
+}
+
+/* Copy / Replace actions directly below an AI suggestion */
+.aw-turn-actions { display: flex; gap: 6px; justify-content: flex-end; padding: 2px 2px 0; }
+.aw-turn-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--t-subtle); border: 1.5px solid var(--t-ring);
+  border-radius: 9px; color: var(--t-ai-label); cursor: pointer;
+  font-family: inherit; font-size: 11.5px; font-weight: 600;
+  padding: 4px 10px; transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.aw-turn-btn:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
+.aw-turn-btn:active { transform: translateY(1px); }
+.aw-turn-btn.success {
+  background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.4); color: #15803d;
+}
+
+/* Composer (bottom input) */
+.aw-composer {
+  display: flex; align-items: flex-end; gap: 8px;
+  padding: 8px 14px 6px;
+  background: var(--t-panel-bg);
+  border-top: 1px solid var(--t-panel-border);
+  flex-shrink: 0;
+}
+.aw-composer-input {
+  flex: 1; resize: none; overflow-y: hidden;
+  box-sizing: border-box;          /* keep auto-grow math predictable inside any host page */
+  background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+  border-radius: 14px; color: var(--t-you-fg);
+  font-family: inherit; font-size: 13px; line-height: 1.5;
+  height: 38px; min-height: 38px; outline: none; padding: 9px 12px;
+  transition: border-color 0.15s;
+}
+.aw-composer-input:focus { border-color: var(--t-accent-1); }
+.aw-composer-input::placeholder { color: var(--t-you-label); opacity: 0.6; }
+.aw-composer-send {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--t-accent-1), var(--t-accent-2));
+  border: none; border-radius: 12px; color: var(--t-on-accent);
+  cursor: pointer; box-shadow: 0 3px 10px var(--t-glow);
+  transition: filter 0.12s, transform 0.1s;
+}
+.aw-composer-send:hover  { filter: brightness(1.1); transform: translateY(-1px); }
+.aw-composer-send:active { transform: translateY(0); }
+
+/* Icon buttons in the bottom bar: tone / language / model */
+.aw-btn-icon {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  background: var(--t-subtle); border: 1.5px solid var(--t-ring);
+  border-radius: 9px; color: var(--t-ai-label); cursor: pointer;
+  padding: 0; transition: background 0.12s, border-color 0.12s;
+}
+.aw-btn-icon:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
+.aw-btn-icon svg { opacity: 0.9; }
+.aw-icon-emoji { font-size: 15px; line-height: 1; }
+
+/* Footer now holds icon buttons: [Tone] [Language] [Model] */
+.aw-pop-footer { gap: 12px; justify-content: flex-start; padding: 10px 16px 13px; }
+/* Extra separation around the model selector so it isn't confused with others */
+.aw-btn-model-sep { margin-left: 6px; }
+.aw-pop-head-actions { gap: 8px; }
+
+/* ── Lightweight hover tooltips (hover-capable devices only) ──────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .aw-tip { position: relative; }
+  .aw-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    transform: translateX(-50%) translateY(3px);
+    background: var(--t-accent-1);
+    color: var(--t-on-accent);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.01em;
+    line-height: 1; white-space: nowrap;
+    padding: 5px 8px; border-radius: 7px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    transition-delay: 0s;
+    z-index: 2147483647;
+  }
+  .aw-tip:hover::after, .aw-tip:focus-visible::after {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+    transition-delay: 250ms;
+  }
+  /* Header icons → tooltip drops below instead of above */
+  .aw-tip-below::after { bottom: auto; top: calc(100% + 7px); transform: translateX(-50%) translateY(-3px); }
+  .aw-tip-below:hover::after, .aw-tip-below:focus-visible::after { transform: translateX(-50%) translateY(0); }
+}
+
+/* Header icon buttons (gear settings + close) */
+.aw-pop-head-actions { display: flex; align-items: center; gap: 4px; }
+.aw-pop-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  background: rgba(255,255,255,0.16); border: none; border-radius: 8px;
+  color: var(--t-on-accent); cursor: pointer; opacity: 0.9;
+  transition: background 0.12s, opacity 0.12s;
+}
+.aw-pop-iconbtn:hover { background: rgba(255,255,255,0.3); opacity: 1; }

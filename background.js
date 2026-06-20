@@ -1,5 +1,91 @@
 // Background service worker — PenPal AI Writing Assistant
 
+// ═══════════════════════════════════════════════════════════════════════════
+// GitHub-based update system (side-loaded installs only)
+// ═══════════════════════════════════════════════════════════════════════════
+const UPDATE_CONFIG = {
+  // Flip to true for the Chrome Web Store build to disable all update checks.
+  isWebStoreBuild: false,
+  versionUrl: "https://raw.githubusercontent.com/cwland/penpal-ai/main/version.json",
+  releasesUrl: "https://github.com/cwland/penpal-ai/releases",
+  checkIntervalMs: 24 * 60 * 60 * 1000, // max once per 24h
+  alarmName: "penpalUpdateCheck"
+};
+
+// Side-loaded = NOT a Web Store build AND no managed update_url in the manifest.
+// (Web Store / policy-managed installs carry an update_url; unpacked/sideloaded
+// builds do not.) No extra permission required.
+function isSideLoadedInstall() {
+  if (UPDATE_CONFIG.isWebStoreBuild) return false;
+  try {
+    if (chrome.runtime.getManifest().update_url) return false;
+  } catch (_) {}
+  return true;
+}
+
+// Numeric semver-ish comparison. Returns true if `remote` is strictly newer
+// than `current`. Tolerates differing segment counts ("1.2" vs "1.2.0").
+function isVersionNewer(remote, current) {
+  const norm = (v) => String(v || "").trim().replace(/^v/i, "").split(".").map(n => parseInt(n, 10) || 0);
+  const a = norm(remote), b = norm(current);
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    const x = a[i] || 0, y = b[i] || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
+
+// Fetch the remote version file and, if newer, record an "update available"
+// flag in local storage for the UI surfaces to read. Rate-limited to once per
+// 24h. Fails silently — never throws, never surfaces errors to the user.
+async function checkForUpdate({ force = false } = {}) {
+  if (!isSideLoadedInstall()) return;
+  try {
+    const { penpalLastUpdateCheck } = await chrome.storage.local.get("penpalLastUpdateCheck");
+    const now = Date.now();
+    if (!force && penpalLastUpdateCheck && (now - penpalLastUpdateCheck) < UPDATE_CONFIG.checkIntervalMs) {
+      return; // checked recently — skip to avoid excessive requests
+    }
+    // Record the attempt up front so a failure doesn't cause repeated retries
+    // before the next scheduled interval.
+    await chrome.storage.local.set({ penpalLastUpdateCheck: now });
+
+    // Cache-buster so we always see the latest file.
+    const resp = await fetch(`${UPDATE_CONFIG.versionUrl}?t=${now}`, { method: "GET", cache: "no-store" });
+    if (!resp.ok) return;
+    const info = await resp.json().catch(() => null);
+    if (!info || !info.version) return;
+
+    const current = chrome.runtime.getManifest().version;
+    if (isVersionNewer(info.version, current)) {
+      await chrome.storage.local.set({
+        penpalUpdate: {
+          available: true,
+          version: String(info.version),
+          notes: info.notes ? String(info.notes) : "",
+          downloadUrl: info.downloadUrl ? String(info.downloadUrl) : UPDATE_CONFIG.releasesUrl
+        }
+      });
+    } else {
+      // Up to date — clear any stale flag (e.g. after the user updates).
+      await chrome.storage.local.set({ penpalUpdate: { available: false } });
+    }
+  } catch (_) {
+    // GitHub unreachable / offline / parse error — fail silently, retry next interval.
+  }
+}
+
+// Triggers: on browser startup, on install/update, and a daily alarm.
+chrome.runtime.onStartup.addListener(() => checkForUpdate());
+try {
+  chrome.alarms.create(UPDATE_CONFIG.alarmName, { periodInMinutes: 24 * 60 });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === UPDATE_CONFIG.alarmName) checkForUpdate();
+  });
+} catch (_) { /* alarms unavailable — startup check still runs */ }
+
 const PROVIDER_ENDPOINTS = {
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   openai:     "https://api.openai.com/v1/chat/completions",
@@ -15,10 +101,23 @@ const PROVIDER_ENDPOINTS = {
   xai:        "https://api.x.ai/v1/chat/completions"
 };
 
+// Allow content scripts (untrusted context) to read/write session storage so
+// the docked side panel can persist its conversation state across page reloads.
+try {
+  chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS" });
+} catch (_) { /* older Chrome without setAccessLevel — non-fatal */ }
+
 chrome.runtime.onInstalled.addListener((details) => {
   // Open settings page automatically on first install
   if (details.reason === "install") {
     chrome.runtime.openOptionsPage();
+  }
+
+  // On install/update, clear any stale "update available" flag (the user may
+  // have just updated) and run a fresh check.
+  if (details.reason === "install" || details.reason === "update") {
+    chrome.storage.local.set({ penpalUpdate: { available: false } });
+    checkForUpdate({ force: true });
   }
 
   chrome.contextMenus.create({
@@ -72,6 +171,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // ── Pop-out window ────────────────────────────────────────────────────
   if (request.action === "openPopout") {
     openOrFocusPopout(request.draft).then(sendResponse);
+    return true;
+  }
+
+  // ── Open a URL in a new tab (used by the update toast's "View Update") ──
+  if (request.action === "openUrl" && request.url) {
+    try { chrome.tabs.create({ url: request.url }); } catch (_) {}
+    sendResponse({ success: true });
+    return true;
+  }
+
+  // ── Manual update check trigger (from a UI surface on load) ────────────
+  if (request.action === "checkForUpdate") {
+    checkForUpdate().finally(() => sendResponse({ success: true }));
+    return true;
+  }
+
+  // ── Live model validation ─────────────────────────────────────────────
+  // Returns the set of model IDs the provider actually exposes for this key,
+  // so the picker can hide presets that would error. Best-effort: on any
+  // failure it returns { ok:false } and callers keep the full curated list.
+  if (request.action === "listModels") {
+    listProviderModels(request).then(sendResponse);
     return true;
   }
 
@@ -139,6 +260,82 @@ chrome.windows.onRemoved.addListener((windowId) => {
     }
   });
 });
+
+// Derive the provider's "list models" URL from its chat endpoint.
+function modelsURLFor(provider, chatEndpoint, format) {
+  if (provider === "cohere") return "https://api.cohere.ai/v1/models";
+  if (format === "anthropic") return chatEndpoint.replace(/\/messages\/?$/, "/models");
+  // OpenAI-compatible: .../chat/completions → .../models
+  if (/\/chat\/completions\/?$/.test(chatEndpoint)) {
+    return chatEndpoint.replace(/\/chat\/completions\/?$/, "/models");
+  }
+  return null; // unknown shape (custom server) — skip validation
+}
+
+// Pull the available model IDs from a provider's /models response. Handles the
+// common shapes: { data:[{id}] } (OpenAI-style), { models:[{id|name}] } (Cohere/
+// Google). IDs are lowercased and any leading "models/" prefix is stripped so
+// they compare cleanly against our preset values.
+function extractModelIds(json) {
+  let arr = [];
+  if (json && Array.isArray(json.data)) arr = json.data;
+  else if (json && Array.isArray(json.models)) arr = json.models;
+  else if (Array.isArray(json)) arr = json;
+  return arr
+    .map(m => (typeof m === "string" ? m : (m && (m.id || m.name))))
+    .filter(Boolean)
+    .map(id => String(id).toLowerCase().replace(/^models\//, ""));
+}
+
+// Cache validation results briefly (per provider+key) so opening the panel
+// repeatedly in a session doesn't hammer the provider's API.
+const MODELS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function listProviderModels({ provider = "openrouter", apiKey = "", endpointOverrides, apiFormat } = {}) {
+  try {
+    const format = (provider === "anthropic" || provider === "cohere") ? provider : (apiFormat || "openai");
+    const chatEndpoint = endpointOverrides?.[provider] || PROVIDER_ENDPOINTS[provider] || PROVIDER_ENDPOINTS.openrouter;
+    const url = modelsURLFor(provider, chatEndpoint, format);
+    if (!url) return { ok: false, reason: "no-endpoint" };
+
+    // Cache key is provider + a short fingerprint of the key (so switching keys re-checks).
+    const fp = apiKey ? String(apiKey.length) + apiKey.slice(-4) : "nokey";
+    const cacheKey = `modelValidation:${provider}:${fp}`;
+    try {
+      const cached = (await chrome.storage.session.get(cacheKey))[cacheKey];
+      if (cached && Date.now() - cached.ts < MODELS_CACHE_TTL && Array.isArray(cached.ids)) {
+        return { ok: true, ids: cached.ids, cached: true };
+      }
+    } catch (_) {}
+
+    const headers = {};
+    if (apiKey) {
+      if (format === "anthropic") { headers["anthropic-version"] = "2023-06-01"; headers["x-api-key"] = apiKey; }
+      else headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+    if (provider === "openrouter" || provider === "meta") {
+      headers["HTTP-Referer"] = "chrome-extension://penpal-ai-writing-assistant";
+      headers["X-Title"] = "PenPal AI Writing Assistant";
+    }
+
+    let resp;
+    try {
+      resp = await fetch(url, { method: "GET", headers });
+    } catch (_) {
+      return { ok: false, reason: "network" };
+    }
+    if (!resp.ok) return { ok: false, reason: `http-${resp.status}` };
+
+    const json = await resp.json().catch(() => null);
+    const ids = extractModelIds(json);
+    if (!ids.length) return { ok: false, reason: "empty" };
+
+    try { await chrome.storage.session.set({ [cacheKey]: { ids, ts: Date.now() } }); } catch (_) {}
+    return { ok: true, ids };
+  } catch (err) {
+    return { ok: false, reason: err?.message || "error" };
+  }
+}
 
 async function callAIAPI(text, settings, { debug = false } = {}) {
   const { apiKey, provider = "openrouter", model, systemPrompt, endpointOverrides, apiFormat } = settings;

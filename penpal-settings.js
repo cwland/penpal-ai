@@ -439,11 +439,12 @@ let editingProviderId = null;    // id of the custom provider currently being ed
 document.addEventListener("DOMContentLoaded", () => {
 
   // ── App version ─────────────────────────────────────────────────────────
-  const versionEl = document.getElementById("pp-app-version");
-  if (versionEl) {
-    try { versionEl.textContent = "v" + chrome.runtime.getManifest().version; }
-    catch { versionEl.textContent = ""; }
-  }
+  let appVersion = "";
+  try { appVersion = chrome.runtime.getManifest().version; } catch { appVersion = ""; }
+
+  // Version badge in the page header, alongside the branding.
+  const headerVersionEl = document.getElementById("page-version");
+  if (headerVersionEl) headerVersionEl.textContent = appVersion ? "v" + appVersion : "";
 
 
   // ── Tabs ────────────────────────────────────────────────────────────────
@@ -499,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "apiKey", "apiKeys", "provider", "model", "defaultTone",
     "customInstructions", "writingStyle", "language", "theme",
     "customModels", "hiddenModels", "endpointOverrides", "customTones", "customProviders",
-    "showLangSelector", "showToneSelector"
+    "showLangSelector", "showToneSelector", "showEdgeIcon"
   ], (data) => {
 
     customModels      = data.customModels || {};
@@ -566,12 +567,12 @@ document.addEventListener("DOMContentLoaded", () => {
         c.classList.toggle("active", c.dataset.theme === currentTheme));
     }
 
-    document.getElementById("show-lang-selector").checked = !!data.showLangSelector;
-    document.getElementById("show-lang-selector").addEventListener("change", markDirty);
-
-    // showToneSelector defaults to true when not yet set
-    document.getElementById("show-tone-selector").checked = data.showToneSelector !== false;
-    document.getElementById("show-tone-selector").addEventListener("change", markDirty);
+    // Browser edge icon toggle (defaults to on when not yet set)
+    const edgeToggle = document.getElementById("show-edge-icon");
+    if (edgeToggle) {
+      edgeToggle.checked = data.showEdgeIcon !== false;
+      edgeToggle.addEventListener("change", markDirty);
+    }
 
     // Snapshot so we can compare later
     savedState = captureState();
@@ -691,8 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
       defaultTone:        currentTone,
       language:           currentLanguage,
       theme:              currentTheme,
-      showLangSelector:   document.getElementById("show-lang-selector").checked,
-      showToneSelector:   document.getElementById("show-tone-selector").checked,
+      showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
       writingStyle:       document.getElementById("writing-style").value.trim(),
       customInstructions: document.getElementById("custom-instructions").value.trim()
     };
@@ -982,9 +982,8 @@ function captureState() {
     model:              document.getElementById("model-select").value,
     tone:               currentTone,
     language:           currentLanguage,
-    showLangSelector:   document.getElementById("show-lang-selector")?.checked ?? false,
-    showToneSelector:   document.getElementById("show-tone-selector")?.checked ?? true,
     theme:              currentTheme,
+    showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
     writingStyle:       document.getElementById("writing-style").value.trim(),
     customInstructions: document.getElementById("custom-instructions").value.trim(),
   };
@@ -1031,9 +1030,9 @@ function updateTabDots() {
 
   const tabDirty = {
     api:        current.apiKeysJSON !== saved.apiKeysJSON || current.provider !== saved.provider || current.model !== saved.model,
-    style:      current.writingStyle !== saved.writingStyle || current.customInstructions !== saved.customInstructions || current.tone !== saved.tone || current.showToneSelector !== saved.showToneSelector,
-    language:   current.language !== saved.language || current.showLangSelector !== saved.showLangSelector,
-    appearance: current.theme !== saved.theme,
+    style:      current.writingStyle !== saved.writingStyle || current.customInstructions !== saved.customInstructions || current.tone !== saved.tone,
+    language:   current.language !== saved.language,
+    appearance: current.theme !== saved.theme || current.showEdgeIcon !== saved.showEdgeIcon,
   };
 
   document.querySelectorAll(".tab-btn[data-tab]").forEach(btn => {

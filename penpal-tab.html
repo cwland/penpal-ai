@@ -69,6 +69,7 @@
     }
     @keyframes float { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-3px) rotate(3deg)} }
     .pp-brand-name { font-size: 15px; font-weight: 800; color: var(--t-on-accent); letter-spacing: -0.02em; }
+    .pp-version    { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); }
     .pp-brand-sub  { font-size: 10.5px; color: rgba(255,255,255,0.6); margin-top: 1px; }
     .pp-settings-btn {
       background: rgba(255,255,255,0.18); border: none; border-radius: 8px;
@@ -257,9 +258,9 @@
       background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
       border-radius: 12px; color: var(--t-you-fg);
       font-family: inherit; font-size: 13px; line-height: 1.6;
-      min-height: 70px; max-height: 180px;
+      min-height: 40px; overflow-y: hidden;
       outline: none; padding: 9px 12px;
-      resize: vertical; transition: border-color 0.15s;
+      resize: none; transition: border-color 0.15s;
     }
     #pp-input:focus { border-color: var(--t-accent-1); }
     #pp-input::placeholder { color: var(--t-you-label); opacity: 0.6; }
@@ -277,8 +278,42 @@
     }
     #pp-clear-btn:hover { background: var(--t-ring); }
 
-    /* Action bar: run button */
-    .pp-action-bar { display: flex; gap: 8px; align-items: center; }
+    /* Action bar: model picker + run button */
+    .pp-action-bar { display: flex; gap: 11px; align-items: center; }
+
+    .pp-btn-icon {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+      border-radius: 10px; color: var(--t-ai-label); cursor: pointer;
+      padding: 0; transition: border-color 0.12s, background 0.12s;
+    }
+    .pp-btn-icon:hover { border-color: var(--t-accent-1); background: var(--t-subtle); }
+    .pp-btn-icon svg { opacity: 0.85; }
+    .pp-icon-emoji { font-size: 17px; line-height: 1; }
+    .pp-btn-model-sep { margin-left: 6px; }
+
+    /* ── Lightweight hover tooltips (hover-capable devices only) ── */
+    @media (hover: hover) and (pointer: fine) {
+      .pp-tip { position: relative; }
+      .pp-tip::after {
+        content: attr(data-tip);
+        position: absolute; left: 50%; bottom: calc(100% + 7px);
+        transform: translateX(-50%) translateY(3px);
+        background: var(--t-accent-1); color: var(--t-on-accent);
+        font-size: 11px; font-weight: 700; line-height: 1; white-space: nowrap;
+        padding: 5px 8px; border-radius: 7px; box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.12s ease, transform 0.12s ease; transition-delay: 0s;
+        z-index: 99999;
+      }
+      .pp-tip:hover::after, .pp-tip:focus-visible::after {
+        opacity: 1; transform: translateX(-50%) translateY(0); transition-delay: 250ms;
+      }
+      .pp-tip-below::after { bottom: auto; top: calc(100% + 7px); transform: translateX(-50%) translateY(-3px); }
+      .pp-tip-below:hover::after, .pp-tip-below:focus-visible::after { transform: translateX(-50%) translateY(0); }
+    }
 
     .pp-btn-run {
       flex: 1;
@@ -312,11 +347,11 @@
         </svg>
       </span>
       <div>
-        <div class="pp-brand-name">PenPal AI</div>
+        <div class="pp-brand-name">PenPal AI <span class="pp-version" id="pp-version"></span></div>
         <div class="pp-brand-sub">Full browser tab</div>
       </div>
     </div>
-    <button class="pp-settings-btn" id="pp-settings-btn">&#9881; Settings</button>
+    <button class="pp-settings-btn pp-tip pp-tip-below" id="pp-settings-btn" data-tip="Settings" aria-label="Settings">&#9881;</button>
   </div>
 
   <!-- No-key banner -->
@@ -339,42 +374,21 @@
   <!-- Controls panel -->
   <div class="pp-controls">
 
-    <!-- Tone -->
-    <div id="pp-tone-row">
-      <div class="pp-compact-row">
-        <span class="pp-compact-label">Tone</span>
-        <span class="pp-compact-sep">&mdash;</span>
-        <span class="pp-compact-value" id="pp-tone-value">&#128522; Casual</span>
-        <button class="pp-compact-more" id="pp-tone-more-btn">+ More</button>
-      </div>
-      <div class="pp-tones" id="pp-tones-wrap"></div>
-    </div>
-
-    <div class="pp-row-divider" id="pp-lang-divider"></div>
-
-    <!-- Language -->
-    <div id="pp-lang-row">
-      <div class="pp-compact-row">
-        <span class="pp-compact-label">Language</span>
-        <span class="pp-compact-sep">&mdash;</span>
-        <span class="pp-compact-value" id="pp-lang-value">&#127482;&#127480; English (US)</span>
-        <button class="pp-compact-more" id="pp-lang-more-btn">+ More</button>
-      </div>
-      <div class="pp-tones" id="pp-langs-wrap"></div>
-    </div>
-
-    <div class="pp-row-divider"></div>
-
     <!-- Input + action bar -->
     <div class="pp-input-section">
       <div class="pp-textarea-wrap">
-        <textarea id="pp-input"
+        <textarea id="pp-input" rows="1"
           placeholder="Paste or type text to improve… (Shift+Enter for new line, Enter to rewrite)"></textarea>
         <button id="pp-clear-btn">&times;</button>
       </div>
       <div class="pp-action-bar">
+        <button class="pp-btn-icon pp-tip" id="pp-tone-btn" data-tip="Tone" aria-label="Change tone"><span class="pp-icon-emoji" id="pp-tone-emoji">&#128522;</span></button>
+        <button class="pp-btn-icon pp-tip" id="pp-lang-btn" data-tip="Language" aria-label="Change language"><span class="pp-icon-emoji" id="pp-lang-emoji">&#127482;&#127480;</span></button>
+        <button class="pp-btn-icon pp-tip pp-btn-model-sep" id="pp-model-btn" data-tip="Model" aria-label="Change model">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/><path d="M5 15l.6 1.6L7 17l-1.4.4L5 19l-.6-1.6L3 17l1.4-.4L5 15z"/></svg>
+        </button>
         <button class="pp-btn-run" id="pp-run-btn">
-          <span id="pp-run-label">&#10022; Rewrite with PenPal AI</span>
+          <span id="pp-run-label">&#10022; Improve writing</span>
           <div class="pp-spin" id="pp-spin" style="display:none"></div>
         </button>
       </div>
@@ -382,6 +396,7 @@
 
   </div><!-- /pp-controls -->
 
+  <script src="penpal-models.js"></script>
   <script src="penpal-tab.js"></script>
 </body>
 </html>

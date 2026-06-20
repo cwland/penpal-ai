@@ -258,8 +258,17 @@
       flex-direction: column;
       align-items: center;
     }
-    .page-logo { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; align-self: flex-start; }
-    .page-icon { font-size: 30px; }
+    .page-logo { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; align-self: stretch; width: 100%; }
+    .page-version {
+      margin-left: auto;
+      align-self: flex-start;
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      background: var(--bg-setup-step, rgba(127,127,127,0.08));
+      border: 1px solid var(--border-header, rgba(127,127,127,0.18));
+      border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+    }
+    .page-icon { font-size: 30px; line-height: 0; }
+    .page-icon img { width: 38px; height: 38px; display: block; border-radius: 8px; }
     .page-header h1 { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
     .page-header h1 .page-subtitle { font-weight: 600; color: var(--text-muted); font-size: 14px; letter-spacing: 0; }
     .page-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -1225,7 +1234,9 @@
       margin-bottom: 16px;
       text-align: center;
     }
-    .howto-hero-icon { font-size: 40px; margin-bottom: 12px; }
+    .howto-hero-icon { font-size: 40px; margin-bottom: 12px; line-height: 0; }
+    .howto-hero-icon img { width: 48px; height: 48px; display: block; }
+    .howto-hero-compact .howto-hero-icon img { width: 34px; height: 34px; }
     .howto-hero h2 { font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.02em; }
     .howto-hero p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; max-width: 420px; margin: 0 auto; }
 
@@ -1393,11 +1404,12 @@
 <!-- Page header with tabs -->
 <div class="page-header">
   <div class="page-logo">
-    <div class="page-icon">✏️</div>
+    <div class="page-icon"><img src="icons/logo.png" alt="PenPal AI"></div>
     <div>
       <h1>PenPal AI <span class="page-subtitle">Writing Assistant</span></h1>
-      <p>Your words, polished ✏️</p>
+      <p>Your words, polished</p>
     </div>
+    <span class="page-version" id="page-version"></span>
   </div>
 
   <nav class="tab-bar">
@@ -1423,6 +1435,9 @@
       🎨 Appearance
       <span class="tab-dot"></span>
     </button>
+    <button class="tab-btn" data-tab="help">
+      🤝 Help &amp; Community
+    </button>
     <button class="tab-btn" data-tab="privacy">
       🔒 Privacy
     </button>
@@ -1434,7 +1449,7 @@
 <div class="tab-panel active" id="tab-howto">
 
   <div class="howto-hero howto-hero-compact">
-    <div class="howto-hero-icon">✏️</div>
+    <div class="howto-hero-icon"><img src="icons/logo.png" alt="PenPal AI"></div>
     <div class="howto-hero-text">
       <h2>PenPal AI Writing Assistant</h2>
       <p>Highlight text anywhere in your browser, click <strong>Rewrite with PenPal</strong>, and get a polished version back — in your tone, style, and language.</p>
@@ -1499,45 +1514,6 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Help &amp; Community</div>
-
-    <div class="privacy-section" style="margin-bottom:14px">
-      <h3>&#127991; Version</h3>
-      <p>PenPal AI &nbsp;<strong id="pp-app-version">—</strong></p>
-    </div>
-
-    <div class="tips-box" style="margin-bottom:18px">
-      PenPal AI is an open-source project. All help, bug reports, and feature requests happen through GitHub.
-    </div>
-
-    <div class="privacy-section">
-      <h3>📦 Source Code &amp; Releases</h3>
-      <p><a href="https://github.com/cwland/penpal-ai" target="_blank">github.com/cwland/penpal-ai</a> — browse the source, download releases, and track what's changed.</p>
-    </div>
-
-    <div class="privacy-section">
-      <h3>🐛 Found a Bug?</h3>
-      <p><a href="https://github.com/cwland/penpal-ai/issues/new?template=bug_report.md" target="_blank">Open a bug report</a> — include your browser version, which AI provider you're using, and steps to reproduce.</p>
-    </div>
-
-    <div class="privacy-section">
-      <h3>💡 Feature Request</h3>
-      <p><a href="https://github.com/cwland/penpal-ai/issues/new?template=feature_request.md" target="_blank">Open a feature request</a> — describe what you'd like and why it would be useful.</p>
-    </div>
-
-    <div class="privacy-section">
-      <h3>🤝 Want to Contribute?</h3>
-      <p>Fork the repo, make your changes, and open a pull request. Contributions are welcome!</p>
-    </div>
-
-    <div class="privacy-section">
-      <h3>💬 General Questions</h3>
-      <p>Use <a href="https://github.com/cwland/penpal-ai/discussions" target="_blank">GitHub Discussions</a> for anything that isn't a bug or feature request.</p>
-    </div>
-
-  </div>
-
 </div>
 
 <!-- ═══ TAB: How to Use ═════════════════════════════════════════════════════ -->
@@ -1567,41 +1543,50 @@
         </ol>
       </div>
       <div class="usage-card">
-        <h3>⌨ Keyboard Shortcut</h3>
+        <h3>⌨ Keyboard Shortcuts</h3>
         <ol>
-          <li>Click inside any text field or textarea</li>
-          <li>Select the text you want to improve</li>
-          <li>Press <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">A</span></li>
-          <li>The PenPal AI panel opens — use <strong>Replace</strong> to insert the result directly</li>
+          <li>Select the text you want to improve on any page</li>
+          <li>Press <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">A</span> (<span class="kbd">⌘</span>+<span class="kbd">Shift</span>+<span class="kbd">A</span> on Mac) to open PenPal with your selection</li>
+          <li>Press <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">P</span> (<span class="kbd">⌘</span>+<span class="kbd">Shift</span>+<span class="kbd">P</span>) to toggle the slide-out <strong>Side Panel</strong> open or closed</li>
+          <li>Use <strong>Replace</strong> to insert the result directly, or <strong>Copy</strong> to grab it</li>
         </ol>
       </div>
       <div class="usage-card">
-        <h3>🧩 Extension Popup</h3>
+        <h3>🧩 Toolbar Icon Menu</h3>
         <ol>
           <li>Click the <strong>PenPal AI</strong> icon (pencil) in your Chrome toolbar</li>
-          <li>Paste or type the text you want to improve — or it'll auto-load your page selection</li>
-          <li>Choose a tone from the row of chips</li>
-          <li>Review the result, then <strong>Copy</strong> it back to where you need it</li>
+          <li>A compact menu opens — it's a launcher, not a chat window</li>
+          <li>Pick how you want to work: <strong>⚙ Settings</strong>, <strong>Pop-Out</strong>, <strong>Full Screen</strong>, or <strong>Side Panel</strong></li>
+          <li>Every option opens the same PenPal writing interface, so your tools are identical wherever you launch it</li>
+        </ol>
+      </div>
+      <div class="usage-card">
+        <h3>↔ Side Panel</h3>
+        <ol>
+          <li>Open it from the toolbar menu's <strong>Side Panel</strong>, the floating pencil launcher on the right edge of the page, or <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">P</span></li>
+          <li>PenPal docks to the side and the page reflows beside it — no overlap</li>
+          <li>Drag the left edge of the panel to <strong>resize</strong> it; your width is remembered on every page and across sessions</li>
+          <li>If it's open when you move between pages, it reopens automatically and keeps your conversation</li>
+          <li>Highlight text on the page and it loads straight into the panel</li>
         </ol>
       </div>
       <div class="usage-card">
         <h3>🗗 Pop-Out Window</h3>
         <ol>
-          <li>Open the PenPal AI popup as usual (it loads any highlighted text automatically)</li>
-          <li>Click the pop-out icon (⧉) next to ⚙ Settings to detach PenPal into its own window</li>
+          <li>Choose <strong>Pop-Out</strong> from the toolbar icon menu to detach PenPal into its own floating window</li>
+          <li>It picks up any text you have highlighted when you open it</li>
           <li>The pop-out stays open while you browse — keep it visible alongside the page you're editing</li>
           <li>Highlight new text on any tab and the pop-out updates automatically, as long as you haven't started typing your own text in it</li>
           <li>Copy results back into whatever you're working on</li>
         </ol>
       </div>
       <div class="usage-card">
-        <h3>🗖 Full Browser Tab</h3>
+        <h3>🗖 Full Screen</h3>
         <ol>
-          <li>Click the expand icon (🗖) in the PenPal AI popup header, <em>or</em> right-click the PenPal toolbar icon and choose <strong>🗖 Open PenPal AI in new tab</strong></li>
-          <li>PenPal opens as a full browser tab — a single conversation window with tone and language controls above the input, and rewrites displayed as a chat thread above</li>
+          <li>Choose <strong>Full Screen</strong> from the toolbar icon menu, <em>or</em> right-click the PenPal toolbar icon and choose <strong>🗖 Open PenPal AI in new tab</strong></li>
+          <li>PenPal opens as a full browser tab — tone and language controls above the input, with rewrites shown as a chat thread</li>
           <li>Type or paste text, choose a tone and language, then click <strong>Rewrite with PenPal AI</strong></li>
-          <li>The result appears in the right-hand workspace — copy it back to wherever you need it</li>
-          <li>Bookmark the tab or pin it to keep PenPal always one click away</li>
+          <li>Bookmark or pin the tab to keep PenPal always one click away</li>
         </ol>
       </div>
     </div>
@@ -1611,6 +1596,8 @@
       If a site's security settings block automatic text insertion, Replace will show <strong>"✓ Copied — paste with Ctrl+V"</strong> — the text is already on your clipboard, so just click into the field and press <span class="kbd">Ctrl+V</span> (or <span class="kbd">⌘V</span> on Mac).
       <br><br>
       <strong>Google Docs and Microsoft Office 365</strong> use custom editors that block browser extensions from inserting text directly, so Replace will always fall back to copy-and-paste there.
+      <br><br>
+      <strong>A few things that work automatically:</strong> the text box grows as you type and shrinks back to one line when cleared; the <strong>Model</strong> picker checks your provider on load and only lists models your key can actually use; and your current version shows next to the PenPal name in every view. If you installed PenPal manually (side-loaded) from GitHub, a small toast lets you know when a newer release is available.
     </div>
   </div>
 
@@ -1848,22 +1835,6 @@
   <div class="subtab-panel active" data-group="style" data-subtab="defaults">
 
     <div class="card">
-      <div class="card-title">Session Tone Selector</div>
-      <div class="field">
-        <div class="setting-toggle-row">
-          <label class="toggle-switch">
-            <input type="checkbox" id="show-tone-selector" checked>
-            <span class="toggle-slider"></span>
-          </label>
-          <div class="toggle-info">
-            <strong>Show tone selector in writing panel</strong>
-            <span>When enabled, a Tone row appears in the writing assistant popup and pop-out window, letting you switch the writing tone per session without changing your default.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="card-title">Tone &amp; Voice</div>
       <div class="field">
         <label>DEFAULT TONE</label>
@@ -1937,22 +1908,6 @@
 <div class="tab-panel" id="tab-language">
 
   <div class="card">
-    <div class="card-title">Session Language Selector</div>
-    <div class="field">
-      <div class="setting-toggle-row">
-        <label class="toggle-switch">
-          <input type="checkbox" id="show-lang-selector">
-          <span class="toggle-slider"></span>
-        </label>
-        <div class="toggle-info">
-          <strong>Show language selector in writing panel</strong>
-          <span>When enabled, a Language row appears in the writing assistant popup and pop-out window, letting you switch the output language per session without changing your default.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
     <div class="card-title">Output Language</div>
     <div class="field">
       <label>WRITE OUTPUT IN</label>
@@ -1988,6 +1943,22 @@
 
 <!-- ═══ TAB: Appearance ══════════════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-appearance">
+
+  <div class="card">
+    <div class="card-title">Browser Edge Icon</div>
+    <div class="field">
+      <div class="setting-toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="show-edge-icon" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="toggle-info">
+          <strong>Show browser edge icon</strong>
+          <span>When on, a small PenPal icon sits at the top-right edge of every web page so you can open the side panel with one click. Drag it vertically to reposition. Turn off to hide it completely.</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-title">Theme</div>
@@ -2122,6 +2093,45 @@
 
       </div>
     </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB: Help & Community ═══════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-help">
+
+  <div class="card">
+    <div class="card-title">Help &amp; Community</div>
+
+    <div class="tips-box" style="margin-bottom:18px">
+      PenPal AI is an open-source project. All help, bug reports, and feature requests happen through GitHub.
+    </div>
+
+    <div class="privacy-section">
+      <h3>📦 Source Code &amp; Releases</h3>
+      <p><a href="https://github.com/cwland/penpal-ai" target="_blank">github.com/cwland/penpal-ai</a> — browse the source, download releases, and track what's changed.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>🐛 Found a Bug?</h3>
+      <p><a href="https://github.com/cwland/penpal-ai/issues/new?template=bug_report.md" target="_blank">Open a bug report</a> — include your browser version, which AI provider you're using, and steps to reproduce.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>💡 Feature Request</h3>
+      <p><a href="https://github.com/cwland/penpal-ai/issues/new?template=feature_request.md" target="_blank">Open a feature request</a> — describe what you'd like and why it would be useful.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>🤝 Want to Contribute?</h3>
+      <p>Fork the repo, make your changes, and open a pull request. Contributions are welcome!</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>💬 General Questions</h3>
+      <p>Use <a href="https://github.com/cwland/penpal-ai/discussions" target="_blank">GitHub Discussions</a> for anything that isn't a bug or feature request.</p>
+    </div>
+
   </div>
 
 </div>

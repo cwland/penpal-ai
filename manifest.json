@@ -1,16 +1,18 @@
 {
   "manifest_version": 3,
   "name": "PenPal AI Writing Assistant",
-  "version": "1.0.6",
+  "version": "1.2.0",
   "description": "Your words, polished. Grammar, style & tone correction powered by your choice of AI — right inside any text field.",
   "permissions": [
     "activeTab",
     "storage",
     "contextMenus",
     "scripting",
-    "clipboardWrite"
+    "clipboardWrite",
+    "alarms"
   ],
   "host_permissions": [
+    "https://raw.githubusercontent.com/*",
     "https://openrouter.ai/*",
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
@@ -28,7 +30,7 @@
     "https://*/*"
   ],
   "action": {
-    "default_popup": "penpal-popup.html",
+    "default_popup": "penpal-menu.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -42,7 +44,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["penpal-content.js"],
+      "js": ["penpal-models.js", "penpal-content.js"],
       "css": ["penpal-content.css"]
     }
   ],
