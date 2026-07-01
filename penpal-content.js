@@ -980,6 +980,7 @@ function awSetTurnResult(turn, text) {
       <div class="aw-turn-bubble aw-turn-ai-bubble"></div>
       <div class="aw-turn-actions">
         <button class="aw-turn-btn aw-turn-copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>
+        <button class="aw-turn-btn aw-turn-copy-close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy &amp; Close</button>
         <button class="aw-turn-btn aw-turn-replace">↩ Replace</button>
       </div>
     </div>`;
@@ -994,6 +995,7 @@ function awSetTurnResult(turn, text) {
 // the centered modal closes after a successful Replace (terminal action).
 function wireTurnActions(turn, text) {
   const copyBtn = turn.querySelector(".aw-turn-copy");
+  const copyCloseBtn = turn.querySelector(".aw-turn-copy-close");
   const replaceBtn = turn.querySelector(".aw-turn-replace");
   const COPY_HTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
   const REPLACE_HTML = "↩ Replace";
@@ -1005,6 +1007,15 @@ function wireTurnActions(turn, text) {
       copyBtn.classList.add("success");
       if (copyBtn._revert) clearTimeout(copyBtn._revert);
       copyBtn._revert = setTimeout(() => { copyBtn.innerHTML = COPY_HTML; copyBtn.classList.remove("success"); }, 1500);
+    };
+  }
+  if (copyCloseBtn) {
+    copyCloseBtn.title = "Copy the suggestion and close this window";
+    copyCloseBtn.onclick = () => {
+      copyTextToClipboard(text);
+      copyCloseBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      copyCloseBtn.classList.add("success");
+      setTimeout(closePopup, 500);
     };
   }
   if (replaceBtn) {
