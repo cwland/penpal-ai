@@ -500,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "apiKey", "apiKeys", "provider", "model", "defaultTone",
     "customInstructions", "writingStyle", "language", "theme",
     "customModels", "hiddenModels", "endpointOverrides", "customTones", "customProviders",
-    "showLangSelector", "showToneSelector", "showEdgeIcon"
+    "showLangSelector", "showToneSelector", "showEdgeIcon", "stripDashes"
   ], (data) => {
 
     customModels      = data.customModels || {};
@@ -572,6 +572,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (edgeToggle) {
       edgeToggle.checked = data.showEdgeIcon !== false;
       edgeToggle.addEventListener("change", markDirty);
+    }
+
+    // Em/en dash stripping toggle (defaults to on when not yet set)
+    const stripDashesToggle = document.getElementById("strip-dashes");
+    if (stripDashesToggle) {
+      stripDashesToggle.checked = data.stripDashes !== false;
+      stripDashesToggle.addEventListener("change", markDirty);
     }
 
     // Snapshot so we can compare later
@@ -693,6 +700,7 @@ document.addEventListener("DOMContentLoaded", () => {
       language:           currentLanguage,
       theme:              currentTheme,
       showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
+      stripDashes:        document.getElementById("strip-dashes")?.checked !== false,
       writingStyle:       document.getElementById("writing-style").value.trim(),
       customInstructions: document.getElementById("custom-instructions").value.trim()
     };
@@ -984,6 +992,7 @@ function captureState() {
     language:           currentLanguage,
     theme:              currentTheme,
     showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
+    stripDashes:        document.getElementById("strip-dashes")?.checked !== false,
     writingStyle:       document.getElementById("writing-style").value.trim(),
     customInstructions: document.getElementById("custom-instructions").value.trim(),
   };
@@ -1030,7 +1039,7 @@ function updateTabDots() {
 
   const tabDirty = {
     api:        current.apiKeysJSON !== saved.apiKeysJSON || current.provider !== saved.provider || current.model !== saved.model,
-    style:      current.writingStyle !== saved.writingStyle || current.customInstructions !== saved.customInstructions || current.tone !== saved.tone,
+    style:      current.writingStyle !== saved.writingStyle || current.customInstructions !== saved.customInstructions || current.tone !== saved.tone || current.stripDashes !== saved.stripDashes,
     language:   current.language !== saved.language,
     appearance: current.theme !== saved.theme || current.showEdgeIcon !== saved.showEdgeIcon,
   };

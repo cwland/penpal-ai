@@ -60,7 +60,7 @@ const SETTINGS_KEYS = [
   "apiKey", "apiKeys", "provider", "model",
   "defaultTone", "customInstructions", "writingStyle", "language", "theme",
   "endpointOverrides", "customTones", "customProviders",
-  "showLangSelector", "showToneSelector"
+  "showLangSelector", "showToneSelector", "stripDashes"
 ];
 
 // Reads settings with retries. A transient chrome.runtime.lastError (sleeping

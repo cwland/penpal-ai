@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
-  "notes": "Added a Copy & Close button to the suggestion popup — copies the result and dismisses the window in one click.",
+  "version": "1.2.2",
+  "notes": "Added a setting to automatically strip em/en dashes from AI responses, replacing them with commas. On by default; toggle it off in Settings > Style.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }

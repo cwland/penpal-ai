@@ -584,7 +584,7 @@ async function runAI() {
 
 const SETTINGS_KEYS = [
   "apiKey", "apiKeys", "provider", "model",
-  "defaultTone", "customInstructions", "writingStyle", "language", "theme", "endpointOverrides", "customTones", "customProviders", "showLangSelector", "showToneSelector"
+  "defaultTone", "customInstructions", "writingStyle", "language", "theme", "endpointOverrides", "customTones", "customProviders", "showLangSelector", "showToneSelector", "stripDashes"
 ];
 
 // Reads settings with retries. A transient chrome.runtime.lastError (sleeping

@@ -452,10 +452,35 @@ async function callAIAPI(text, settings, { debug = false } = {}) {
     throw wrapped;
   }
 
-  const cleaned = stripCommentary(stripThinkTags(raw));
+  let cleaned = stripCommentary(stripThinkTags(raw));
+
+  // Hard-coded post-process: some models keep sneaking in em/en dashes even
+  // when explicitly told not to. Default ON; user can disable in Settings.
+  if (settings.stripDashes !== false) cleaned = stripDashes(cleaned);
 
   if (debug) return { text: cleaned, debug: debugInfo };
   return cleaned;
+}
+
+/**
+ * Strip em dashes (—) and en dashes (–) from the AI's response and replace
+ * them with commas. This runs regardless of what the model outputs — it's a
+ * deterministic cleanup step, not another prompt instruction the model can
+ * ignore. Toggleable via settings.stripDashes (default: on).
+ */
+function stripDashes(text) {
+  if (!text) return text;
+
+  let result = text
+    // Any em/en dash, plus surrounding whitespace, becomes ", "
+    .replace(/\s*[—–]\s*/g, ", ")
+    // Collapse doubled-up commas produced by adjacent dashes ("a—b—c")
+    .replace(/,\s*,/g, ",")
+    // Drop the comma if it now sits directly before other punctuation
+    .replace(/,(\s*)([.!?;:,])/g, "$2");
+
+  // Trailing comma left by a dash at the very end of the text
+  return result.replace(/,\s*$/, "").trim();
 }
 
 /**

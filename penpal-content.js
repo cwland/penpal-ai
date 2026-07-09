@@ -1254,7 +1254,7 @@ async function doReplace(newText) {
 
 const SETTINGS_KEYS = [
   "apiKey","apiKeys","provider","model","defaultTone",
-  "customInstructions","writingStyle","language","theme","endpointOverrides","customTones","customProviders","showLangSelector","showToneSelector"
+  "customInstructions","writingStyle","language","theme","endpointOverrides","customTones","customProviders","showLangSelector","showToneSelector","stripDashes"
 ];
 
 // Reads settings from storage with a few retries. A momentary
