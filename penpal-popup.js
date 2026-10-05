@@ -96,6 +96,27 @@ let _currentAiTurn  = null;  // the latest AI .chat-turn element (regen target)
 let _validatedModels = [];   // validated models for the default provider
 
 // ── Pop-out / full-tab support ───────────────────────────────────────────
+// ── Rewrite history ──
+// Unique id for this view so the History window can send "Edit" text back here.
+const PP_INSTANCE_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now() + Math.random());
+
+function openHistoryWindow(source) {
+  chrome.runtime.sendMessage({ action: "openHistory", opener: { source, instanceId: PP_INSTANCE_ID } }, () => {
+    void chrome.runtime.lastError;
+  });
+}
+
+// Metadata stored alongside each saved rewrite.
+function historyMeta(settings, toneId, source) {
+  const tone = getToneList(settings).find(t => t.id === toneId);
+  return {
+    source,
+    tone: toneId || "",
+    toneLabel: tone ? tone.label : "",
+    language: sessionLanguage || settings.language || "English (US)"
+  };
+}
+
 const params       = new URLSearchParams(location.search);
 const isStandalone = params.get("standalone") === "1";
 const isFullTab    = params.get("tab") === "1";
@@ -151,6 +172,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ── Settings button ──────────────────────────────────────────────────────
   document.getElementById("pp-settings-btn").addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
+  });
+
+  // ── History button ───────────────────────────────────────────────────────
+  document.getElementById("pp-history-btn").addEventListener("click", () => {
+    openHistoryWindow(isStandalone ? "popout" : (isFullTab ? "tab" : "popup"));
+  });
+
+  // History window → "Edit": load the text into this view's input.
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.action !== "historyInsert" || msg.target !== PP_INSTANCE_ID) return;
+    const inputEl = document.getElementById("pp-input");
+    inputEl.value = msg.text || "";
+    userEditedInput = true; // don't let live page-selection sync overwrite it
+    autoGrowTextarea(inputEl, 5);
+    inputEl.focus();
+    inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+    inputEl.scrollTop = inputEl.scrollHeight;
+    sendResponse({ ok: true });
   });
 
   // ── Full-tab button ──────────────────────────────────────────────────────
@@ -555,7 +594,8 @@ async function runAI() {
           ...settings,
           model: sessionModel || settings.model,
           systemPrompt: buildSystemPrompt(settings, selectedTone)
-        }
+        },
+        history: historyMeta(settings, selectedTone, isStandalone ? "popout" : (isFullTab ? "tab" : "popup"))
       }, (res) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";

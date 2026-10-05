@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PenPal AI — History</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Theme variables ── */
+    body {
+      --t-accent-1:#6d28d9; --t-accent-2:#4f46e5; --t-on-accent:#ffffff;
+      --t-glow:rgba(109,40,217,0.35); --t-subtle:rgba(109,40,217,0.10);
+      --t-ring:rgba(109,40,217,0.30); --t-surface:#f0edf8; --t-text:#1a1226;
+      --t-panel-bg:rgba(255,255,255,0.55); --t-panel-border:rgba(109,40,217,0.10);
+      --t-chip-border:#e5e7eb; --t-you-bg:#ffffff; --t-you-fg:#374151;
+      --t-you-label:#6b7280; --t-ai-label:#7c3aed;
+    }
+    body[data-theme="default"]     {--t-accent-1:#6d28d9;--t-accent-2:#4f46e5;--t-on-accent:#ffffff;--t-glow:rgba(109,40,217,0.35);--t-subtle:rgba(109,40,217,0.10);--t-ring:rgba(109,40,217,0.30);--t-surface:#f0edf8;--t-text:#1a1226;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(109,40,217,0.10);--t-chip-border:#e5e7eb;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#7c3aed}
+    body[data-theme="navy"]        {--t-accent-1:#1e3a5f;--t-accent-2:#1a3050;--t-on-accent:#ffffff;--t-glow:rgba(30,58,95,0.35);--t-subtle:rgba(30,58,95,0.10);--t-ring:rgba(30,58,95,0.30);--t-surface:#eef2f7;--t-text:#0f2744;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(30,58,95,0.10);--t-chip-border:#d1dae6;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#1e3a5f}
+    body[data-theme="slate"]       {--t-accent-1:#374151;--t-accent-2:#1f2937;--t-on-accent:#ffffff;--t-glow:rgba(55,65,81,0.35);--t-subtle:rgba(55,65,81,0.10);--t-ring:rgba(55,65,81,0.30);--t-surface:#f3f4f6;--t-text:#111827;--t-panel-bg:rgba(255,255,255,0.60);--t-panel-border:rgba(55,65,81,0.10);--t-chip-border:#d1d5db;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#9ca3af;--t-ai-label:#4b5563}
+    body[data-theme="forest"]      {--t-accent-1:#14532d;--t-accent-2:#166534;--t-on-accent:#ffffff;--t-glow:rgba(20,83,45,0.35);--t-subtle:rgba(20,83,45,0.10);--t-ring:rgba(20,83,45,0.30);--t-surface:#f0fdf4;--t-text:#052e16;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(20,83,45,0.10);--t-chip-border:#bbf7d0;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#15803d}
+    body[data-theme="ocean"]       {--t-accent-1:#0e7490;--t-accent-2:#0f766e;--t-on-accent:#ffffff;--t-glow:rgba(14,116,144,0.35);--t-subtle:rgba(14,116,144,0.10);--t-ring:rgba(14,116,144,0.30);--t-surface:#ecfeff;--t-text:#0c2a3a;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(14,116,144,0.10);--t-chip-border:#a5f3fc;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#0e7490}
+    body[data-theme="crimson"]     {--t-accent-1:#7f1d1d;--t-accent-2:#991b1b;--t-on-accent:#ffffff;--t-glow:rgba(127,29,29,0.35);--t-subtle:rgba(127,29,29,0.10);--t-ring:rgba(127,29,29,0.30);--t-surface:#fff8f6;--t-text:#2d0e0e;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(127,29,29,0.10);--t-chip-border:#fecaca;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#991b1b}
+    body[data-theme="midnight"]    {--t-accent-1:#312e81;--t-accent-2:#1e1b4b;--t-on-accent:#ffffff;--t-glow:rgba(99,102,241,0.40);--t-subtle:rgba(99,102,241,0.15);--t-ring:rgba(99,102,241,0.35);--t-surface:#0f0e1a;--t-text:#e8e6f0;--t-panel-bg:rgba(0,0,0,0.30);--t-panel-border:rgba(99,102,241,0.15);--t-chip-border:#3730a3;--t-you-bg:#1e1c2e;--t-you-fg:#c9c6d8;--t-you-label:#9ca3af;--t-ai-label:#a5b4fc}
+    body[data-theme="matrix"]      {--t-accent-1:#166534;--t-accent-2:#052e16;--t-on-accent:#4ade80;--t-glow:rgba(74,222,128,0.35);--t-subtle:rgba(74,222,128,0.12);--t-ring:rgba(74,222,128,0.35);--t-surface:#020c06;--t-text:#4ade80;--t-panel-bg:rgba(0,0,0,0.40);--t-panel-border:rgba(74,222,128,0.15);--t-chip-border:#14532d;--t-you-bg:#0a1f0e;--t-you-fg:#86efac;--t-you-label:#22c55e;--t-ai-label:#4ade80}
+    body[data-theme="rose"]        {--t-accent-1:#be185d;--t-accent-2:#9d174d;--t-on-accent:#ffffff;--t-glow:rgba(190,24,93,0.35);--t-subtle:rgba(190,24,93,0.10);--t-ring:rgba(190,24,93,0.30);--t-surface:#fdf2f8;--t-text:#500724;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(190,24,93,0.10);--t-chip-border:#fbcfe8;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#be185d}
+    body[data-theme="lavender"]    {--t-accent-1:#8b5cf6;--t-accent-2:#7c3aed;--t-on-accent:#ffffff;--t-glow:rgba(139,92,246,0.35);--t-subtle:rgba(139,92,246,0.10);--t-ring:rgba(139,92,246,0.30);--t-surface:#faf5ff;--t-text:#3b0764;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(139,92,246,0.10);--t-chip-border:#e9d5ff;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#7c3aed}
+    body[data-theme="sakura"]      {--t-accent-1:#e11d48;--t-accent-2:#be123c;--t-on-accent:#ffffff;--t-glow:rgba(225,29,72,0.35);--t-subtle:rgba(225,29,72,0.10);--t-ring:rgba(225,29,72,0.30);--t-surface:#fff1f2;--t-text:#4c0519;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(225,29,72,0.10);--t-chip-border:#fecdd3;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#e11d48}
+    body[data-theme="copper"]      {--t-accent-1:#b45309;--t-accent-2:#92400e;--t-on-accent:#ffffff;--t-glow:rgba(180,83,9,0.35);--t-subtle:rgba(180,83,9,0.10);--t-ring:rgba(180,83,9,0.30);--t-surface:#fffbeb;--t-text:#451a03;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(180,83,9,0.10);--t-chip-border:#fde68a;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#b45309}
+    body[data-theme="stone"]       {--t-accent-1:#57534e;--t-accent-2:#44403c;--t-on-accent:#ffffff;--t-glow:rgba(87,83,78,0.35);--t-subtle:rgba(87,83,78,0.10);--t-ring:rgba(87,83,78,0.30);--t-surface:#fafaf9;--t-text:#1c1917;--t-panel-bg:rgba(255,255,255,0.60);--t-panel-border:rgba(87,83,78,0.10);--t-chip-border:#d6d3d1;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#9ca3af;--t-ai-label:#57534e}
+    body[data-theme="sage"]        {--t-accent-1:#4d7c0f;--t-accent-2:#3f6212;--t-on-accent:#ffffff;--t-glow:rgba(77,124,15,0.35);--t-subtle:rgba(77,124,15,0.10);--t-ring:rgba(77,124,15,0.30);--t-surface:#f7fee7;--t-text:#1a2e05;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(77,124,15,0.10);--t-chip-border:#d9f99d;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#4d7c0f}
+    body[data-theme="arctic"]      {--t-accent-1:#0284c7;--t-accent-2:#0369a1;--t-on-accent:#ffffff;--t-glow:rgba(2,132,199,0.35);--t-subtle:rgba(2,132,199,0.10);--t-ring:rgba(2,132,199,0.30);--t-surface:#f0f9ff;--t-text:#0c4a6e;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(2,132,199,0.10);--t-chip-border:#bae6fd;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#0284c7}
+    body[data-theme="cobalt"]      {--t-accent-1:#1d4ed8;--t-accent-2:#1e40af;--t-on-accent:#ffffff;--t-glow:rgba(29,78,216,0.35);--t-subtle:rgba(29,78,216,0.10);--t-ring:rgba(29,78,216,0.30);--t-surface:#eff6ff;--t-text:#1e3a8a;--t-panel-bg:rgba(255,255,255,0.55);--t-panel-border:rgba(29,78,216,0.10);--t-chip-border:#bfdbfe;--t-you-bg:#ffffff;--t-you-fg:#374151;--t-you-label:#6b7280;--t-ai-label:#1d4ed8}
+    body[data-theme="aubergine"]   {--t-accent-1:#7e22ce;--t-accent-2:#6b21a8;--t-on-accent:#ffffff;--t-glow:rgba(126,34,206,0.45);--t-subtle:rgba(126,34,206,0.15);--t-ring:rgba(126,34,206,0.35);--t-surface:#1a0533;--t-text:#e9d5ff;--t-panel-bg:rgba(0,0,0,0.30);--t-panel-border:rgba(126,34,206,0.20);--t-chip-border:#581c87;--t-you-bg:#2d0d54;--t-you-fg:#d8b4fe;--t-you-label:#a855f7;--t-ai-label:#c084fc}
+    body[data-theme="deepsea"]     {--t-accent-1:#0f766e;--t-accent-2:#0d5f58;--t-on-accent:#ffffff;--t-glow:rgba(15,118,110,0.45);--t-subtle:rgba(15,118,110,0.15);--t-ring:rgba(15,118,110,0.35);--t-surface:#042f2e;--t-text:#99f6e4;--t-panel-bg:rgba(0,0,0,0.30);--t-panel-border:rgba(15,118,110,0.20);--t-chip-border:#134e4a;--t-you-bg:#134e4a;--t-you-fg:#99f6e4;--t-you-label:#2dd4bf;--t-ai-label:#5eead4}
+    body[data-theme="indigonight"]  {--t-accent-1:#4f46e5;--t-accent-2:#4338ca;--t-on-accent:#ffffff;--t-glow:rgba(79,70,229,0.40);--t-subtle:rgba(79,70,229,0.15);--t-ring:rgba(79,70,229,0.35);--t-surface:#18181b;--t-text:#e4e4e7;--t-panel-bg:rgba(0,0,0,0.30);--t-panel-border:rgba(79,70,229,0.15);--t-chip-border:#3730a3;--t-you-bg:#27272a;--t-you-fg:#d4d4d8;--t-you-label:#a1a1aa;--t-ai-label:#818cf8}
+    body[data-theme="eclipse"]     {--t-accent-1:#4b5563;--t-accent-2:#374151;--t-on-accent:#f9fafb;--t-glow:rgba(75,85,99,0.40);--t-subtle:rgba(75,85,99,0.15);--t-ring:rgba(75,85,99,0.35);--t-surface:#111827;--t-text:#f9fafb;--t-panel-bg:rgba(0,0,0,0.30);--t-panel-border:rgba(75,85,99,0.20);--t-chip-border:#374151;--t-you-bg:#1f2937;--t-you-fg:#e5e7eb;--t-you-label:#9ca3af;--t-ai-label:#d1d5db}
+    body[data-theme="obsidian"]    {--t-accent-1:#3f3f46;--t-accent-2:#27272a;--t-on-accent:#e4e4e7;--t-glow:rgba(63,63,70,0.40);--t-subtle:rgba(63,63,70,0.15);--t-ring:rgba(63,63,70,0.35);--t-surface:#09090b;--t-text:#e4e4e7;--t-panel-bg:rgba(0,0,0,0.40);--t-panel-border:rgba(63,63,70,0.20);--t-chip-border:#27272a;--t-you-bg:#18181b;--t-you-fg:#d4d4d8;--t-you-label:#71717a;--t-ai-label:#a1a1aa}
+    body[data-theme="espresso"]    {--t-accent-1:#78350f;--t-accent-2:#5c2a0a;--t-on-accent:#fef9c3;--t-glow:rgba(120,53,15,0.45);--t-subtle:rgba(120,53,15,0.15);--t-ring:rgba(120,53,15,0.35);--t-surface:#0c0700;--t-text:#fef9c3;--t-panel-bg:rgba(0,0,0,0.35);--t-panel-border:rgba(120,53,15,0.20);--t-chip-border:#431407;--t-you-bg:#1a0e03;--t-you-fg:#fef9c3;--t-you-label:#d97706;--t-ai-label:#fbbf24}
+    body[data-theme="bronze"]      {--t-accent-1:#d97706;--t-accent-2:#b45309;--t-on-accent:#0a0700;--t-glow:rgba(217,119,6,0.45);--t-subtle:rgba(217,119,6,0.12);--t-ring:rgba(217,119,6,0.35);--t-surface:#0a0700;--t-text:#fef9c3;--t-panel-bg:rgba(217,119,6,0.08);--t-panel-border:rgba(217,119,6,0.15);--t-chip-border:#431407;--t-you-bg:#1a1100;--t-you-fg:#fef9c3;--t-you-label:#d97706;--t-ai-label:#fbbf24}
+    body[data-theme="volcanic"]    {--t-accent-1:#c2410c;--t-accent-2:#9a3412;--t-on-accent:#fed7aa;--t-glow:rgba(194,65,12,0.45);--t-subtle:rgba(194,65,12,0.12);--t-ring:rgba(194,65,12,0.35);--t-surface:#0c0500;--t-text:#fed7aa;--t-panel-bg:rgba(0,0,0,0.35);--t-panel-border:rgba(194,65,12,0.20);--t-chip-border:#431407;--t-you-bg:#1c0c04;--t-you-fg:#fed7aa;--t-you-label:#f97316;--t-ai-label:#fb923c}
+
+    /* ── Base ── */
+    body {
+      background: var(--t-surface);
+      color: var(--t-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .pp-header {
+      background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px 11px; flex-shrink: 0; gap: 10px;
+    }
+    .pp-brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .pp-logo { display: inline-flex; align-items: center; width: 22px; height: 22px; color: var(--t-on-accent); }
+    .pp-brand-name { font-size: 15px; font-weight: 800; color: var(--t-on-accent); letter-spacing: -0.02em; }
+    .pp-brand-sub  { font-size: 10.5px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+    .pp-header-btn {
+      background: rgba(255,255,255,0.18); border: none; border-radius: 8px;
+      color: var(--t-on-accent); cursor: pointer; font-size: 12px; font-weight: 600;
+      font-family: inherit; padding: 5px 11px; opacity: 0.85; white-space: nowrap;
+      transition: background 0.12s, opacity 0.12s;
+    }
+    .pp-header-btn:hover { background: rgba(255,255,255,0.3); opacity: 1; }
+    .pp-header-btn.pp-confirm { background: #dc2626; opacity: 1; }
+    .pp-header-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── History list ── */
+    #chat-history {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 16px 18px 20px;
+      display: flex; flex-direction: column; gap: 14px; min-height: 0;
+    }
+    #chat-placeholder {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; color: var(--t-you-label); opacity: 0.45; user-select: none; text-align: center;
+      padding-bottom: 40px;
+    }
+    #chat-placeholder svg { width: 36px; height: 36px; }
+    #chat-placeholder h3  { font-size: 15px; font-weight: 600; }
+    #chat-placeholder p   { font-size: 12.5px; max-width: 280px; }
+
+    .hist-day {
+      align-self: center; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--t-you-label);
+      background: var(--t-subtle); border-radius: 20px; padding: 3px 10px; margin-top: 6px;
+    }
+    .hist-entry { display: flex; flex-direction: column; gap: 8px; }
+    .hist-time { font-size: 10.5px; color: var(--t-you-label); font-weight: 600; text-transform: none; letter-spacing: 0; opacity: 0.85; }
+
+    /* ── Chat turns (matches the other PenPal views) ── */
+    .chat-turn { display: flex; flex-direction: column; gap: 4px; }
+    .chat-turn-you { align-items: flex-start; }
+    .chat-turn-ai  { align-items: flex-end; }
+    .chat-turn-content { display: flex; flex-direction: column; gap: 4px; max-width: 82%; min-width: 120px; }
+    .chat-bubble-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--t-you-label);
+    }
+    .chat-ai-header, .chat-you-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .chat-ai-label { color: var(--t-ai-label); }
+    .chat-bubble {
+      border-radius: 14px; font-size: 13.5px; line-height: 1.65;
+      padding: 10px 14px; white-space: pre-wrap; word-break: break-word;
+    }
+    .chat-you-bubble {
+      background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border); color: var(--t-you-fg);
+      border-radius: 4px 14px 14px 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .chat-ai-bubble {
+      background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+      color: var(--t-on-accent); border-radius: 14px 4px 14px 14px;
+      box-shadow: 0 4px 20px var(--t-glow);
+    }
+    .chat-actions { display: flex; gap: 6px; }
+    .chat-turn-you .chat-actions { justify-content: flex-start; }
+    .chat-turn-ai  .chat-actions { justify-content: flex-end; }
+    .chat-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--t-subtle); border: 1.5px solid var(--t-ring);
+      border-radius: 20px; color: var(--t-ai-label); cursor: pointer;
+      font-family: inherit; font-size: 10.5px; font-weight: 600;
+      padding: 2px 9px; flex-shrink: 0; transition: all 0.12s; white-space: nowrap;
+    }
+    .chat-btn:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
+    .chat-turn-you .chat-btn { background: transparent; border-color: var(--t-chip-border); color: var(--t-you-label); }
+    .chat-turn-you .chat-btn:hover { background: var(--t-subtle); border-color: var(--t-accent-1); color: var(--t-accent-1); }
+
+    /* ── Toast ── */
+    #hist-toast {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(10px);
+      background: var(--t-accent-1); color: var(--t-on-accent);
+      font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.22); opacity: 0; pointer-events: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    #hist-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="pp-header">
+    <div class="pp-brand">
+      <span class="pp-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+      </span>
+      <div>
+        <div class="pp-brand-name">Rewrite History</div>
+        <div class="pp-brand-sub" id="hist-count">PenPal AI</div>
+      </div>
+    </div>
+    <button class="pp-header-btn" id="hist-clear" title="Delete all saved history">Clear all</button>
+  </div>
+
+  <div id="chat-history">
+    <div id="chat-placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+      <h3>No history yet</h3>
+      <p>Your rewrites will be saved here as you use PenPal, with the newest at the bottom.</p>
+    </div>
+  </div>
+
+  <div id="hist-toast"></div>
+
+  <script src="penpal-history.js"></script>
+</body>
+</html>

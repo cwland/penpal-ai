@@ -27,6 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
     window.close();
   });
 
+  // ── History (standalone pop-out window) ─────────────────────────────────────
+  // Opened from the menu there's no chat view to send "Edit" text back to, so
+  // Edit opens a full-screen tab with the text loaded instead.
+  document.getElementById("pm-history").addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "openHistory", opener: { source: "menu" } }, () => {
+      void chrome.runtime.lastError;
+      window.close();
+    });
+  });
+
   // ── Full Screen (existing full browser tab) ─────────────────────────────────
   document.getElementById("pm-fullscreen").addEventListener("click", () => {
     chrome.runtime.sendMessage({ action: "openTab" }, () => {

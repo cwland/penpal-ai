@@ -78,6 +78,8 @@
       transition: background 0.12s, opacity 0.12s;
     }
     .pp-settings-btn:hover { background: rgba(255,255,255,0.3); opacity: 1; }
+    .pp-header-actions { display: flex; align-items: center; gap: 8px; }
+    .pp-history-btn { display: inline-flex; align-items: center; padding: 5px 9px; align-self: stretch; }
 
     /* ── Banners ── */
     #pp-no-key {
@@ -196,6 +198,17 @@
       padding: 2px 9px; flex-shrink: 0; transition: all 0.12s; white-space: nowrap;
     }
     .chat-copy-btn:hover { background: var(--t-ring); border-color: var(--t-accent-1); }
+
+    /* Edit button under the "You wrote" bubble (left-aligned) */
+    .chat-you-actions { display: flex; justify-content: flex-start; }
+    .chat-edit-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: transparent; border: 1.5px solid var(--t-chip-border);
+      border-radius: 20px; color: var(--t-you-label); cursor: pointer;
+      font-family: inherit; font-size: 10.5px; font-weight: 600;
+      padding: 2px 9px; transition: all 0.12s; white-space: nowrap;
+    }
+    .chat-edit-btn:hover { background: var(--t-subtle); border-color: var(--t-accent-1); color: var(--t-accent-1); }
 
     /* ── Controls panel ── */
     .pp-controls {
@@ -351,7 +364,10 @@
         <div class="pp-brand-sub">Full browser tab</div>
       </div>
     </div>
-    <button class="pp-settings-btn pp-tip pp-tip-below" id="pp-settings-btn" data-tip="Settings" aria-label="Settings">&#9881;</button>
+    <div class="pp-header-actions">
+      <button class="pp-settings-btn pp-history-btn pp-tip pp-tip-below" id="pp-history-btn" data-tip="History" aria-label="Rewrite history"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></button>
+      <button class="pp-settings-btn pp-tip pp-tip-below" id="pp-settings-btn" data-tip="Settings" aria-label="Settings">&#9881;</button>
+    </div>
   </div>
 
   <!-- No-key banner -->

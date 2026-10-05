@@ -1398,7 +1398,7 @@
 <!-- Setup required banner (hidden when key is set) -->
 <div id="setup-banner">
   <span class="setup-icon">🔑</span>
-  <span>An API key is required to use this extension. &nbsp;<a id="banner-go-api">Go to API Settings →</a></span>
+  <span>An API key is required to use this extension. &nbsp;<a id="banner-go-api">Go to AI Models &amp; Settings →</a></span>
 </div>
 
 <!-- Page header with tabs -->
@@ -1420,7 +1420,7 @@
       🧭 How to Use
     </button>
     <button class="tab-btn" data-tab="api">
-      🔑 API &amp; Model
+      🔑 AI Models &amp; Settings
       <span class="tab-dot"></span>
     </button>
     <button class="tab-btn" data-tab="style">
@@ -1462,13 +1462,13 @@
       <div class="setup-step">
         <div class="setup-step-body">
           <h3>Get Connected</h3>
-          <p>PenPal connects to a service that powers your rewrites. The easiest way to start is a free <strong>OpenRouter</strong> account — sign up at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create an API key. Then head to the <strong>API &amp; Model</strong> tab to choose it. New here? See <strong>Recommended Models</strong> below for a free starting setup.</p>
+          <p>PenPal connects to a service that powers your rewrites. The easiest way to start is a free <strong>OpenRouter</strong> account — sign up at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> and create an API key. Then head to the <strong>AI Models &amp; Settings</strong> tab to choose it. New here? See <strong>Recommended Models</strong> below for a free starting setup.</p>
         </div>
       </div>
       <div class="setup-step">
         <div class="setup-step-body">
           <h3>Paste Your API Key &amp; Test It</h3>
-          <p>On the <strong>API &amp; Model</strong> tab, paste your key into the API Key field, then click <strong>Test Connection</strong> to verify it works before saving.</p>
+          <p>On the <strong>AI Models &amp; Settings</strong> tab, paste your key into the API Key field, then click <strong>Test Connection</strong> to verify it works before saving.</p>
         </div>
       </div>
       <div class="setup-step">
@@ -1510,7 +1510,7 @@
         <li><strong>GPT-4.1</strong> — OpenAI's current flagship. A great alternative if you'd prefer to stay within the OpenAI family of models.</li>
         <li><strong>Gemini 3.5 Flash</strong> — Google's fastest frontier model. Excellent multilingual support at a competitive price.</li>
       </ul>
-      <p>All are available through OpenRouter using the same API key as the free tier — just switch the model on the <strong>API &amp; Model</strong> tab whenever you'd like better results.</p>
+      <p>All are available through OpenRouter using the same API key as the free tier — just switch the model on the <strong>AI Models &amp; Settings</strong> tab whenever you'd like better results.</p>
     </div>
   </div>
 
@@ -1638,13 +1638,14 @@
 </div>
 
 
-<!-- ═══ TAB: API & Model ════════════════════════════════════════════════════ -->
+<!-- ═══ TAB: AI Models & Settings ════════════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-api">
 
   <div class="subtab-bar" data-group="api">
     <button class="subtab-btn active" data-group="api" data-subtab="defaults">⭐ Defaults</button>
     <button class="subtab-btn" data-group="api" data-subtab="manage">⚙ Manage Default Providers</button>
     <button class="subtab-btn" data-group="api" data-subtab="custom">🖥️ Custom Providers</button>
+    <button class="subtab-btn" data-group="api" data-subtab="history">🕘 History</button>
   </div>
 
   <!-- ─── Sub-tab: Defaults ─── -->
@@ -1851,6 +1852,37 @@
     <div class="card">
       <div class="card-title">Your Custom Providers</div>
       <div id="custom-provider-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ─── Sub-tab: History ─── -->
+  <div class="subtab-panel" data-group="api" data-subtab="history">
+
+    <div class="card">
+      <div class="card-title">Rewrite History</div>
+      <div class="field">
+        <label>HOW MANY REWRITES TO KEEP</label>
+        <select id="history-limit">
+          <option value="0">Don't save history</option>
+          <option value="25">25 rewrites</option>
+          <option value="50">50 rewrites</option>
+          <option value="100">100 rewrites (default)</option>
+          <option value="250">250 rewrites</option>
+          <option value="500">500 rewrites</option>
+          <option value="1000">1,000 rewrites</option>
+        </select>
+        <div class="hint">PenPal keeps your most recent rewrites so you can copy or edit them later from the 🕘 History button in any PenPal view. When the limit is reached, the oldest are removed first. Lowering the limit removes older rewrites as soon as you save. History is stored only on this device and is never synced or sent anywhere.</div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>SAVED NOW</label>
+        <div class="hint" id="history-count" style="margin-top:0">—</div>
+        <div class="btn-row">
+          <button class="btn-secondary" id="history-open-btn">🕘 Open History</button>
+          <button class="btn-secondary" id="history-clear-btn">🗑 Clear History</button>
+        </div>
+        <div class="test-result" id="history-msg" style="display:none"></div>
+      </div>
     </div>
 
   </div>

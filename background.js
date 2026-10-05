@@ -150,6 +150,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "callAI") {
     callAIAPI(request.text, request.settings, { debug: !!request.debug })
       .then(result => {
+        // Only chat surfaces send `history` metadata — Settings' connection
+        // tests don't, so they never land in the user's history.
+        if (request.history) {
+          const out = request.debug ? result.text : result;
+          addHistoryEntry(request.text, out, request.history, request.settings).catch(() => {});
+        }
         if (request.debug) sendResponse({ success: true, result: result.text, debug: result.debug });
         else sendResponse({ success: true, result });
       })
@@ -193,6 +199,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // failure it returns { ok:false } and callers keep the full curated list.
   if (request.action === "listModels") {
     listProviderModels(request).then(sendResponse);
+    return true;
+  }
+
+  // ── History window ────────────────────────────────────────────────────
+  if (request.action === "openHistory") {
+    openOrFocusHistory(request.opener || {}, sender).then(sendResponse);
+    return true;
+  }
+  if (request.action === "historyEdit" && typeof request.text === "string") {
+    deliverHistoryEdit(request.text).then(sendResponse);
     return true;
   }
 
@@ -252,14 +268,149 @@ async function openOrFocusPopout(draft) {
   }
 }
 
-// Clean up tracking state when the pop-out window is closed by the user.
+// Clean up tracking state when the pop-out or history window is closed by the user.
 chrome.windows.onRemoved.addListener((windowId) => {
-  chrome.storage.session.get("popoutWindowId", ({ popoutWindowId }) => {
+  chrome.storage.session.get(["popoutWindowId", "historyWindowId"], ({ popoutWindowId, historyWindowId }) => {
     if (popoutWindowId === windowId) {
       chrome.storage.session.remove(["popoutWindowId", "popoutDraft"]);
     }
+    if (historyWindowId === windowId) {
+      chrome.storage.session.remove(["historyWindowId"]);
+    }
   });
 });
+
+// ── Rewrite history ──────────────────────────────────────────────────────
+// Every successful rewrite from a chat surface (full tab, pop-out, side panel)
+// is kept in chrome.storage.local under HISTORY_KEY, oldest first. Local only —
+// never synced, never sent anywhere.
+const HISTORY_KEY = "penpalHistory";
+const HISTORY_DEFAULT_LIMIT = 100;   // Settings → AI Models & Settings → History
+const HISTORY_HARD_MAX      = 1000;  // safety cap regardless of setting
+
+async function getHistoryLimit() {
+  try {
+    const { historyLimit } = await chrome.storage.sync.get("historyLimit");
+    const n = Number(historyLimit);
+    if (!Number.isFinite(n) || n < 0) return HISTORY_DEFAULT_LIMIT;
+    return Math.min(Math.floor(n), HISTORY_HARD_MAX);
+  } catch (_) {
+    return HISTORY_DEFAULT_LIMIT;
+  }
+}
+
+let _historyWrite = Promise.resolve();
+function addHistoryEntry(input, output, meta, settings) {
+  if (!input || !output) return Promise.resolve();
+  // Serialize writes so two rewrites finishing together can't clobber each other.
+  _historyWrite = _historyWrite.then(async () => {
+    const limit = await getHistoryLimit();
+    if (limit === 0) return; // user turned history off
+    const { [HISTORY_KEY]: list = [] } = await chrome.storage.local.get(HISTORY_KEY);
+    list.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      ts: Date.now(),
+      input,
+      output,
+      tone: meta.tone || "",
+      toneLabel: meta.toneLabel || "",
+      language: meta.language || "",
+      model: settings?.model || "",
+      source: meta.source || ""
+    });
+    if (list.length > limit) list.splice(0, list.length - limit);
+    await chrome.storage.local.set({ [HISTORY_KEY]: list });
+  }).catch(() => {});
+  return _historyWrite;
+}
+
+// Lowering the limit in Settings trims older entries right away.
+function trimHistoryToLimit() {
+  _historyWrite = _historyWrite.then(async () => {
+    const limit = await getHistoryLimit();
+    const { [HISTORY_KEY]: list } = await chrome.storage.local.get(HISTORY_KEY);
+    if (!Array.isArray(list) || list.length <= limit) return;
+    if (limit === 0) await chrome.storage.local.remove(HISTORY_KEY);
+    else await chrome.storage.local.set({ [HISTORY_KEY]: list.slice(list.length - limit) });
+  }).catch(() => {});
+  return _historyWrite;
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.historyLimit) trimHistoryToLimit();
+});
+
+// Open the History pop-out window (or focus it), remembering which PenPal
+// view opened it so "Edit" can send text back to that view's input box.
+async function openOrFocusHistory(opener, sender) {
+  try {
+    const target = {
+      source: opener.source || "",
+      instanceId: opener.instanceId || "",
+      tabId: sender?.tab?.id ?? null,
+      windowId: sender?.tab?.windowId ?? null
+    };
+    await chrome.storage.session.set({ historyOpener: target });
+
+    const { historyWindowId } = await chrome.storage.session.get("historyWindowId");
+    if (historyWindowId) {
+      try {
+        await chrome.windows.get(historyWindowId);
+        await chrome.windows.update(historyWindowId, { focused: true });
+        return { success: true, focused: true };
+      } catch (_) {
+        await chrome.storage.session.remove("historyWindowId");
+      }
+    }
+    const win = await chrome.windows.create({
+      url: chrome.runtime.getURL("penpal-history.html"),
+      type: "popup",
+      width: 480,
+      height: 720,
+      focused: true
+    });
+    await chrome.storage.session.set({ historyWindowId: win.id });
+    return { success: true, created: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// Send history text back to the view that opened the History window.
+// Falls back to a fresh full-screen tab if that view has since been closed.
+async function deliverHistoryEdit(text) {
+  const { historyOpener: o } = await chrome.storage.session.get("historyOpener");
+  let delivered = false;
+
+  if (o && o.source === "sidepanel" && o.tabId != null) {
+    // Side panel lives in a content script — reach it through its tab.
+    try {
+      const res = await chrome.tabs.sendMessage(o.tabId, { action: "historyInsert", text });
+      delivered = !!res?.ok;
+    } catch (_) {}
+  } else if (o && o.instanceId) {
+    // Extension pages (full tab, pop-out window) each answer only to their own id.
+    try {
+      const res = await chrome.runtime.sendMessage({ action: "historyInsert", text, target: o.instanceId });
+      delivered = !!res?.ok;
+    } catch (_) {}
+  }
+
+  if (delivered) {
+    try {
+      if (o.windowId != null) await chrome.windows.update(o.windowId, { focused: true });
+      if (o.tabId != null) await chrome.tabs.update(o.tabId, { active: true });
+    } catch (_) {}
+    return { success: true, delivered: true };
+  }
+
+  // Opener is gone (or History was opened from the toolbar menu) — open a
+  // full-screen tab with the text loaded in its input.
+  const tab = await chrome.tabs.create({
+    url: chrome.runtime.getURL("penpal-tab.html?tab=1&from=history&selection=" + encodeURIComponent(text))
+  });
+  try { await chrome.windows.update(tab.windowId, { focused: true }); } catch (_) {}
+  return { success: true, delivered: false, openedTab: true };
+}
 
 // Derive the provider's "list models" URL from its chat endpoint.
 function modelsURLFor(provider, chatEndpoint, format) {

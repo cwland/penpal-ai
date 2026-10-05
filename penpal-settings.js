@@ -500,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "apiKey", "apiKeys", "provider", "model", "defaultTone",
     "customInstructions", "writingStyle", "language", "theme",
     "customModels", "hiddenModels", "endpointOverrides", "customTones", "customProviders",
-    "showLangSelector", "showToneSelector", "showEdgeIcon", "stripDashes"
+    "showLangSelector", "showToneSelector", "showEdgeIcon", "stripDashes", "historyLimit"
   ], (data) => {
 
     customModels      = data.customModels || {};
@@ -579,6 +579,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (stripDashesToggle) {
       stripDashesToggle.checked = data.stripDashes !== false;
       stripDashesToggle.addEventListener("change", markDirty);
+    }
+
+    // Rewrite history limit (defaults to 100 when not yet set)
+    const historyLimitSel = document.getElementById("history-limit");
+    if (historyLimitSel) {
+      const lim = String(Number.isFinite(data.historyLimit) ? data.historyLimit : 100);
+      if (![...historyLimitSel.options].some(o => o.value === lim)) {
+        historyLimitSel.add(new Option(`${lim} rewrites`, lim));
+      }
+      historyLimitSel.value = lim;
+      historyLimitSel.addEventListener("change", checkDirty);
     }
 
     // Snapshot so we can compare later
@@ -701,6 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
       theme:              currentTheme,
       showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
       stripDashes:        document.getElementById("strip-dashes")?.checked !== false,
+      historyLimit:       readHistoryLimit(),
       writingStyle:       document.getElementById("writing-style").value.trim(),
       customInstructions: document.getElementById("custom-instructions").value.trim()
     };
@@ -978,6 +990,63 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// ── Rewrite history (AI Models & Settings → History) ─────────────────────
+
+function readHistoryLimit() {
+  const v = parseInt(document.getElementById("history-limit")?.value, 10);
+  return Number.isFinite(v) && v >= 0 ? v : 100;
+}
+
+function refreshHistoryCount() {
+  const el = document.getElementById("history-count");
+  if (!el) return;
+  chrome.storage.local.get("penpalHistory", (d) => {
+    const n = Array.isArray(d?.penpalHistory) ? d.penpalHistory.length : 0;
+    el.textContent = n === 0 ? "No rewrites saved yet." : `${n.toLocaleString()} rewrite${n === 1 ? "" : "s"} saved on this device.`;
+    const clearBtn = document.getElementById("history-clear-btn");
+    if (clearBtn) clearBtn.disabled = n === 0;
+  });
+}
+
+function setupHistorySettings() {
+  refreshHistoryCount();
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.penpalHistory) refreshHistoryCount();
+  });
+
+  document.getElementById("history-open-btn")?.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "openHistory", opener: { source: "settings" } }, () => {
+      void chrome.runtime.lastError;
+    });
+  });
+
+  // Two-click confirm (no blocking browser dialogs).
+  const clearBtn = document.getElementById("history-clear-btn");
+  const msg = document.getElementById("history-msg");
+  let confirmTimer = null;
+  const resetClear = () => { clearBtn.textContent = "🗑 Clear History"; clearBtn.dataset.confirm = ""; };
+  clearBtn?.addEventListener("click", () => {
+    if (clearBtn.dataset.confirm !== "1") {
+      clearBtn.dataset.confirm = "1";
+      clearBtn.textContent = "Click again to delete all";
+      clearTimeout(confirmTimer);
+      confirmTimer = setTimeout(resetClear, 3000);
+      return;
+    }
+    clearTimeout(confirmTimer);
+    resetClear();
+    chrome.storage.local.remove("penpalHistory", () => {
+      if (!msg) return;
+      msg.className = "test-result success";
+      msg.textContent = "✓ History cleared.";
+      msg.style.display = "block";
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", setupHistorySettings);
+
 // ── Dirty tracking ────────────────────────────────────────────────────────
 
 function captureState() {
@@ -993,6 +1062,7 @@ function captureState() {
     theme:              currentTheme,
     showEdgeIcon:       document.getElementById("show-edge-icon")?.checked !== false,
     stripDashes:        document.getElementById("strip-dashes")?.checked !== false,
+    historyLimit:       readHistoryLimit(),
     writingStyle:       document.getElementById("writing-style").value.trim(),
     customInstructions: document.getElementById("custom-instructions").value.trim(),
   };
@@ -1038,7 +1108,7 @@ function updateTabDots() {
   const saved   = savedState || {};
 
   const tabDirty = {
-    api:        current.apiKeysJSON !== saved.apiKeysJSON || current.provider !== saved.provider || current.model !== saved.model,
+    api:        current.apiKeysJSON !== saved.apiKeysJSON || current.provider !== saved.provider || current.model !== saved.model || current.historyLimit !== saved.historyLimit,
     style:      current.writingStyle !== saved.writingStyle || current.customInstructions !== saved.customInstructions || current.tone !== saved.tone || current.stripDashes !== saved.stripDashes,
     language:   current.language !== saved.language,
     appearance: current.theme !== saved.theme || current.showEdgeIcon !== saved.showEdgeIcon,

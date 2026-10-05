@@ -152,7 +152,30 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     toggleSidePanel();
     sendResponse?.({ success: true });
   }
+  // History window → "Edit": put the text in the composer, opening the docked
+  // panel first if PenPal isn't open on this page any more.
+  if (msg.action === "historyInsert" && typeof msg.text === "string") {
+    insertHistoryText(msg.text);
+    sendResponse?.({ ok: true });
+  }
 });
+
+async function insertHistoryText(text) {
+  const fill = () => {
+    const input = popup?.querySelector("#aw-input");
+    if (!input) return;
+    input.value = text;
+    panelInputText = text;
+    autoGrowTextarea(input, 5);
+    input.focus({ preventScroll: true });
+    try { input.setSelectionRange(text.length, text.length); } catch (_) {}
+    input.scrollTop = input.scrollHeight;
+  };
+  if (popup) { fill(); return; }
+  await openPopup("", { docked: true });
+  // Let the restored panel session settle first so it can't overwrite the text.
+  setTimeout(fill, 250);
+}
 
 // ── Bootstrap the floating launcher (top frame only) ──────────────────────────
 if (document.readyState === "loading") {
@@ -711,6 +734,9 @@ function buildPopupHTML(text, tones, settings) {
         </div>
       </div>
       <div class="aw-pop-head-actions">
+        <button class="aw-pop-iconbtn aw-tip aw-tip-below" id="aw-btn-history" data-tip="History" aria-label="Rewrite history">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+        </button>
         <button class="aw-pop-iconbtn aw-tip aw-tip-below" id="aw-btn-settings" data-tip="Settings" aria-label="Settings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
@@ -834,6 +860,16 @@ function wirePopupEvents(text, settings) {
 
   // ── Session model picker ──────────────────────────────────────────────────
   setupContentModelButton(settings);
+
+  popup.querySelector("#aw-btn-history")?.addEventListener("click", () => {
+    try {
+      chrome.runtime.sendMessage({ action: "openHistory", opener: { source: "sidepanel" } }, () => {
+        void chrome.runtime.lastError;
+      });
+    } catch (_) {
+      showSettingsOpenError();
+    }
+  });
 
   popup.querySelector("#aw-btn-settings").addEventListener("click", () => {
     openSettingsPage();
@@ -1087,7 +1123,16 @@ async function runAI(text, _settingsAtOpen) {
           ...settings,
           model: sessionModel || settings.model,
           systemPrompt: buildSystemPrompt(settings, currentTone)
-        }
+        },
+        history: (() => {
+          const tone = getToneList(settings).find(x => x.id === currentTone);
+          return {
+            source: isDocked ? "sidepanel" : "page",
+            tone: currentTone || "",
+            toneLabel: tone ? tone.label : "",
+            language: sessionLanguage || settings.language || "English (US)"
+          };
+        })()
       }, (res) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";

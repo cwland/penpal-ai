@@ -1,6 +1,6 @@
 # Privacy Policy — PenPal AI Writing Assistant
 
-_Last updated: June 15, 2026_
+_Last updated: October 5, 2026_
 
 ---
 
@@ -21,8 +21,9 @@ The following is saved in Chrome's local extension storage (`chrome.storage.loca
 - **API keys** — the key(s) you enter for your chosen AI provider(s)
 - **Settings and preferences** — your selected provider, model, default tone, language preference, writing style notes, custom tones, and custom system prompt
 - **Custom provider configuration** — any self-hosted or third-party endpoints you add
+- **Rewrite history** — the text you submitted and the AI's corrected version for your most recent rewrites (100 by default — adjustable, or turned off, under Settings → AI Models & Settings → History), with timestamps, tone, and language. History is stored only in `chrome.storage.local` on this device; it is never synced or sent anywhere.
 
-You can clear all stored data at any time by removing the extension from Chrome.
+You can delete your rewrite history at any time with **Clear all** in the History window or **Clear History** in Settings, and clear all stored data by removing the extension from Chrome.
 
 ---
 
@@ -72,7 +73,7 @@ PenPal AI does not:
 | Permission | Why it's needed |
 |---|---|
 | `activeTab` | Read and modify the currently active page to inject the rewriting panel and replace selected text |
-| `storage` | Save your settings and API keys locally on your device |
+| `storage` | Save your settings, API keys, and rewrite history locally on your device |
 | `contextMenus` | Add the "Rewrite with PenPal AI" option to the right-click menu |
 | `scripting` | Inject the inline assistant panel into pages when triggered |
 | `clipboardWrite` | Copy AI-generated results to your clipboard |

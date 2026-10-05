@@ -183,6 +183,39 @@ const toneEmoji   = document.getElementById("pp-tone-emoji");
 const langBtn     = document.getElementById("pp-lang-btn");
 const langEmoji   = document.getElementById("pp-lang-emoji");
 
+
+// ── Rewrite history ──
+// Unique id for this view so the History window can send "Edit" text back here.
+const PP_INSTANCE_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now() + Math.random());
+
+function openHistoryWindow(source) {
+  chrome.runtime.sendMessage({ action: "openHistory", opener: { source, instanceId: PP_INSTANCE_ID } }, () => {
+    void chrome.runtime.lastError;
+  });
+}
+
+// Metadata stored alongside each saved rewrite.
+function historyMeta(settings, toneId, source) {
+  const tone = getToneList(settings).find(t => t.id === toneId);
+  return {
+    source,
+    tone: toneId || "",
+    toneLabel: tone ? tone.label : "",
+    language: sessionLanguage || settings.language || "English (US)"
+  };
+}
+
+// History window → "Edit": load the text into this tab's input.
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.action !== "historyInsert" || msg.target !== PP_INSTANCE_ID) return;
+  inputEl.value = msg.text || "";
+  autoGrowTextarea(inputEl, 5);
+  inputEl.focus();
+  inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+  inputEl.scrollTop = inputEl.scrollHeight;
+  sendResponse({ ok: true });
+});
+
 // ── Init ──
 (async function init() {
   const settings = await getSettings();
@@ -298,6 +331,7 @@ function setupInput() {
   document.getElementById("pp-settings-btn").addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
   });
+  document.getElementById("pp-history-btn").addEventListener("click", () => openHistoryWindow("tab"));
   noKeyBanner.addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
   });
@@ -316,7 +350,13 @@ function maybeLoadSelection() {
   const params = new URLSearchParams(location.search);
   const sel = params.get("selection");
   if (sel) {
-    inputEl.value = decodeURIComponent(sel);
+    // History hand-offs are encoded once (URLSearchParams already decoded them);
+    // other callers double-encode, so decode once more — tolerating stray "%".
+    const fromHistory = params.get("from") === "history";
+    let txt = sel;
+    if (!fromHistory) { try { txt = decodeURIComponent(sel); } catch (_) {} }
+    inputEl.value = txt;
+    if (fromHistory) return autoGrowTextarea(inputEl, 5);
     selNotice.style.display = "flex";
     autoGrowTextarea(inputEl, 5);
     setTimeout(() => selNotice.style.display = "none", 4000);
@@ -336,7 +376,11 @@ function appendYouBubble(text) {
     <div class="chat-turn-content">
       <div class="chat-bubble-label">You wrote</div>
       <div class="chat-bubble chat-you-bubble">${escapeHTML(text)}</div>
+      <div class="chat-you-actions">
+        <button class="chat-edit-btn" title="Load this text back into the input to edit">&#9998; Edit</button>
+      </div>
     </div>`;
+  wireEditBtn(turn, text);
   chatHistory.appendChild(turn);
   scrollToBottom();
   return turn;
@@ -431,27 +475,45 @@ function wireCopyBtn(turnEl, text) {
   });
 }
 
+function wireEditBtn(turnEl, text) {
+  const btn = turnEl.querySelector(".chat-edit-btn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    // Load this submitted text back into the input for editing
+    inputEl.value = text;
+    autoGrowTextarea(inputEl, 5);
+    inputEl.focus();
+    inputEl.setSelectionRange(text.length, text.length);
+    inputEl.scrollTop = inputEl.scrollHeight;
+  });
+}
+
 function scrollToBottom() {
   chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
 // ── Core run ──
 async function runTab() {
-  const text = inputEl.value.trim();
-  if (!text) { inputEl.focus(); return; }
-
-  const isNewRewrite = _explicitRun;
+  const isNewRewrite = _explicitRun || !_currentAiBubbleEl;
   _explicitRun = false;
+
+  // New rewrites read from the input box; auto-regens (tone/lang/model change)
+  // reuse the last submitted text, since the input is cleared after submit.
+  const text = isNewRewrite ? inputEl.value.trim() : _snapshotText;
+  if (!text) { inputEl.focus(); return; }
 
   runBtn.disabled = true;
   runLabel.textContent = "Improving…";
   spin.style.display = "";
 
-  if (isNewRewrite || !_currentAiBubbleEl) {
+  if (isNewRewrite) {
     // New explicit rewrite — APPEND to history (do NOT clear previous turns)
     _snapshotText = text;
     appendYouBubble(_snapshotText);
     _currentAiBubbleEl = appendAiBubble(null);
+    // Clear the input now that the text has moved into the conversation
+    inputEl.value = "";
+    autoGrowTextarea(inputEl, 5);
   } else {
     // Auto-regen (tone/lang chip changed) — update the latest AI bubble in place
     setBubbleLoading(_currentAiBubbleEl);
@@ -476,7 +538,8 @@ async function runTab() {
           ...settings,
           model: sessionModel || settings.model,
           systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage)
-        }
+        },
+        history: historyMeta(settings, selectedTone, "tab")
       }, (res) => {
         if (chrome.runtime.lastError) {
           const msg = chrome.runtime.lastError.message || "";

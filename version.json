@@ -1,5 +1,5 @@
 {
-  "version": "1.2.2",
-  "notes": "Added a setting to automatically strip em/en dashes from AI responses, replacing them with commas. On by default; toggle it off in Settings > Style.",
+  "version": "1.3.0",
+  "notes": "New: Rewrite History. Click the clock button next to Settings in any PenPal view (or History in the toolbar menu) to open a pop-out window listing every rewrite with timestamps. Copy the corrected text, or Edit to send it back to PenPal's input box. Choose how many rewrites to keep (default 100) under Settings → AI Models & Settings → History. Also: the full screen tab clears the input after you submit, and your messages there have an Edit button.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }
