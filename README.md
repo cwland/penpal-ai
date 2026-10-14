@@ -22,6 +22,7 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
 - **Full screen tab** — Open PenPal as a full browser tab with a two-column layout (input sidebar + result workspace). Launch it from the toolbar menu's **Full Screen**, or right-click the toolbar icon and choose **🗖 Open PenPal AI in new tab**.
 - **Context menu integration** — Right-click any selected text and choose **✏️ Rewrite with PenPal AI** to open the panel with your selection pre-loaded. Right-click the toolbar icon to open PenPal in a new tab.
 - **Smart model list** — The model picker validates against your provider on load and only lists models your API key can actually use, so you never pick one that errors.
+- **Shorten & Edit on every reply** — Every PenPal suggestion has a row of buttons below it ending in **✎ Edit** and **✂ Shorten**, in every view (side panel, page popup, toolbar popup, pop-out, and full screen tab). **Shorten** adds a new, tighter version of that suggestion (roughly half the length) in the same tone and language; change the tone or model afterwards and it re-shortens with the new setting. **Edit** loads the suggestion back into the input box so you can tweak and resend it. Your own "You wrote" messages have an **Edit** button too.
 - **Auto-growing input** — The text box starts at one line, grows row-by-row as you type or paste (up to five lines, then scrolls), and collapses back when cleared.
 - **Version display & update checks** — The current version shows next to the PenPal branding in every view. Side-loaded installs check this repo's `version.json` (max once per 24h) and show a small, non-blocking toast when a newer release is available. Web Store builds skip update checks entirely.
 - **Rewrite history** — Every rewrite is saved on your device with a timestamp. Click the clock button next to Settings in any view (or **History** in the toolbar menu) to open the history in its own pop-out window, oldest to newest. **Copy** the corrected text, or **Edit** to load your original or the corrected text back into the input of the PenPal view you opened it from. Choose how many rewrites to keep (or turn history off) under **Settings → AI Models & Settings → History** — the default is 100. **Clear all** deletes them.
@@ -69,7 +70,7 @@ On first install, the Settings page opens automatically so you can add your API 
 1. Click the PenPal AI toolbar icon — a compact menu opens.
 2. Choose how you want to work: **Settings**, **Pop-Out**, **Full Screen**, or **Side Panel**.
 3. In whichever view opens, type or paste text (or use your page selection), pick a tone and optional language, and click **Rewrite**.
-4. The result appears with options to copy or replace the original.
+4. The result appears with buttons below it to **Copy**, **Edit** (load it back into the input box), or **Shorten** (get a more concise version in the same tone). In the side panel and page popup you can also **Replace** the original text on the page.
 
 ### Side panel
 
@@ -89,7 +90,7 @@ On first install, the Settings page opens automatically so you can add your API 
 2. A small **✏️** pencil button appears near the selection.
 3. Click it to open the inline panel with the selected text pre-loaded.
 4. Pick a tone and click **Rewrite**.
-5. Click **Replace** to inject the result back into the field, or **Copy** to put it on the clipboard.
+5. Click **Replace** to inject the result back into the field, or **Copy** to put it on the clipboard. Use **Shorten** for a more concise version, or **Edit** to load the text into the input box and adjust it.
 
 ### Via context menu
 

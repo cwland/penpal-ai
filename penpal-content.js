@@ -98,6 +98,8 @@ function clampPanelWidth(w) {
 let awCurrentAiTurn  = null; // latest AI .aw-turn element (regen target)
 let awExplicitRun    = false;// true = a fresh send → append a new turn
 let awSnapshotText   = "";   // text captured for the in-flight turn
+let awShortenMode    = false;// true = the current AI turn is a "Shorten" of awSnapshotText
+let awShortenBusy    = false;// guards against double-clicking Shorten mid-request
 let sessionModel     = null; // session-only model override (null = saved default)
 let awValidatedModels = [];  // validated models for the default provider
 
@@ -672,6 +674,7 @@ async function openPopup(text, opts = {}) {
   // Fresh conversation each open
   awCurrentAiTurn = null;
   awSnapshotText  = "";
+  awShortenMode   = false;
 
   wirePopupEvents(text, settings);
 
@@ -995,8 +998,12 @@ function awAppendYou(text) {
   const h = awChatHistory(); if (!h) return null;
   const turn = document.createElement("div");
   turn.className = "aw-turn aw-turn-you";
-  turn.innerHTML = `<div class="aw-turn-content"><div class="aw-turn-label">You wrote</div><div class="aw-turn-bubble aw-turn-you-bubble"></div></div>`;
+  turn.innerHTML = `<div class="aw-turn-content"><div class="aw-turn-label">You wrote</div><div class="aw-turn-bubble aw-turn-you-bubble"></div>
+      <div class="aw-turn-actions aw-turn-you-actions">
+        <button class="aw-turn-btn aw-turn-edit" title="Load this text back into the input box to edit">✎ Edit</button>
+      </div></div>`;
   turn.querySelector(".aw-turn-you-bubble").textContent = text;
+  wireEditButton(turn, text);
   h.appendChild(turn); awScrollBottom(); return turn;
 }
 function awAiLoadingHTML() {
@@ -1018,10 +1025,14 @@ function awSetTurnResult(turn, text) {
         <button class="aw-turn-btn aw-turn-copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>
         <button class="aw-turn-btn aw-turn-copy-close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy &amp; Close</button>
         <button class="aw-turn-btn aw-turn-replace">↩ Replace</button>
+        <button class="aw-turn-btn aw-turn-edit" title="Load this suggestion into the input box to edit">✎ Edit</button>
+        <button class="aw-turn-btn aw-turn-shorten" title="Make a shorter, more concise version in the same tone">✂ Shorten</button>
       </div>
     </div>`;
   turn.querySelector(".aw-turn-ai-bubble").textContent = text;
   wireTurnActions(turn, text);
+  wireEditButton(turn, text);
+  wireShortenButton(turn, text);
   awScrollBottom();
 }
 
@@ -1080,6 +1091,45 @@ function wireTurnActions(turn, text) {
     };
   }
 }
+// "Edit" (on both You and PenPal turns): put this turn's text back into the
+// composer so it can be tweaked and re-sent.
+function wireEditButton(turn, text) {
+  const btn = turn.querySelector(".aw-turn-edit");
+  if (!btn) return;
+  btn.onclick = () => {
+    const inputEl = popup?.querySelector("#aw-input");
+    if (!inputEl) return;
+    inputEl.value = text;
+    panelInputText = text;
+    autoGrowTextarea(inputEl, 5);
+    inputEl.focus();
+    inputEl.setSelectionRange(text.length, text.length);
+    inputEl.scrollTop = inputEl.scrollHeight;
+  };
+}
+
+// "Shorten": ask for a tighter version of THIS suggestion, same tone, as a new
+// PenPal turn. Tone/language/model changes afterwards re-shorten it in place.
+function wireShortenButton(turn, text) {
+  const btn = turn.querySelector(".aw-turn-shorten");
+  if (!btn) return;
+  btn.onclick = async () => {
+    if (awShortenBusy || !popup) return;
+    awShortenBusy = true;
+    btn.disabled = true;
+    try {
+      awSnapshotText  = text;
+      awShortenMode   = true;
+      awExplicitRun   = false;
+      awCurrentAiTurn = awAppendAi();
+      await runAI(text);
+    } finally {
+      awShortenBusy = false;
+      btn.disabled = false;
+    }
+  };
+}
+
 function awSetTurnErrorHTML(turn, html) {
   if (!turn) return;
   turn.innerHTML = `<div class="aw-turn-content"><div class="aw-turn-label aw-turn-ai-label">✦ PenPal suggests</div><div class="aw-turn-bubble aw-turn-error">${html}</div></div>`;
@@ -1100,6 +1150,7 @@ async function runAI(text, _settingsAtOpen) {
 
   if (isNew) {
     awSnapshotText = t;
+    awShortenMode  = false;
     awAppendYou(t);
     awCurrentAiTurn = awAppendAi();
     const inputEl = popup.querySelector("#aw-input");
@@ -1122,7 +1173,7 @@ async function runAI(text, _settingsAtOpen) {
         settings: {
           ...settings,
           model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, currentTone)
+          systemPrompt: buildSystemPrompt(settings, currentTone) + (awShortenMode ? SHORTEN_PROMPT : "")
         },
         history: (() => {
           const tone = getToneList(settings).find(x => x.id === currentTone);
@@ -1355,6 +1406,11 @@ function resolveSettings(data) {
 
   return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
 }
+
+// Appended to the system prompt when the person clicks "Shorten".
+const SHORTEN_PROMPT = `
+
+SHORTEN MODE: The text is already a finished draft. Make it noticeably shorter and more concise (aim for roughly half the length or less). Cut filler, repetition, and unnecessary detail, but keep the key meaning, any specific facts, names, or requests, and the same tone described above.`;
 
 function buildSystemPrompt(settings, tone) {
   const t        = tone || settings.defaultTone || "casual";

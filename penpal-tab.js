@@ -102,6 +102,11 @@ function resolveSettings(data) {
   return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
 }
 
+// Appended to the system prompt when the person clicks "Shorten".
+const SHORTEN_PROMPT = `
+
+SHORTEN MODE: The text is already a finished draft. Make it noticeably shorter and more concise (aim for roughly half the length or less). Cut filler, repetition, and unnecessary detail, but keep the key meaning, any specific facts, names, or requests, and the same tone described above.`;
+
 function buildSystemPrompt(settings, tone, sessionLang) {
   const t        = tone || settings.defaultTone || "casual";
   const style    = settings.writingStyle       || "";
@@ -166,6 +171,8 @@ let sessionModel       = null; // session-only model override (null = use saved 
 let _explicitRun       = false;
 let _snapshotText      = "";
 let _currentAiBubbleEl = null; // points to .chat-turn.chat-turn-ai of the LATEST exchange
+let _shortenMode       = false; // true = the latest AI turn is a "Shorten" of _snapshotText
+let _shortenBusy       = false; // guards against double-clicking Shorten mid-request
 let _lastResult        = "";
 
 // ── DOM refs ──
@@ -376,8 +383,8 @@ function appendYouBubble(text) {
     <div class="chat-turn-content">
       <div class="chat-bubble-label">You wrote</div>
       <div class="chat-bubble chat-you-bubble">${escapeHTML(text)}</div>
-      <div class="chat-you-actions">
-        <button class="chat-edit-btn" title="Load this text back into the input to edit">&#9998; Edit</button>
+      <div class="chat-turn-actions chat-you-actions">
+        <button class="chat-action-btn chat-edit-btn" title="Load this text back into the input box to edit">✎ Edit</button>
       </div>
     </div>`;
   wireEditBtn(turn, text);
@@ -405,7 +412,7 @@ function appendAiBubble(result) {
       </div>`;
   } else {
     turn.innerHTML = buildAiTurnHTML(result);
-    wireCopyBtn(turn, result);
+    wireAiTurnActions(turn, result);
   }
 
   chatHistory.appendChild(turn);
@@ -418,9 +425,13 @@ function buildAiTurnHTML(text) {
     <div class="chat-turn-content">
       <div class="chat-ai-header">
         <div class="chat-bubble-label chat-ai-label">PenPal Suggests</div>
-        <button class="chat-copy-btn">&#128203; Copy</button>
       </div>
       <div class="chat-bubble chat-ai-bubble">${escapeHTML(text)}</div>
+      <div class="chat-turn-actions">
+        <button class="chat-action-btn chat-copy-btn">📋 Copy</button>
+        <button class="chat-action-btn chat-edit-btn" title="Load this suggestion into the input box to edit">✎ Edit</button>
+        <button class="chat-action-btn chat-shorten-btn" title="Make a shorter, more concise version in the same tone">✂ Shorten</button>
+      </div>
     </div>`;
 }
 
@@ -445,7 +456,7 @@ function setBubbleResult(turnEl, text) {
   const frag = document.createElement("div");
   frag.innerHTML = buildAiTurnHTML(text);
   content.innerHTML = frag.querySelector(".chat-turn-content").innerHTML;
-  wireCopyBtn(turnEl, text);
+  wireAiTurnActions(turnEl, text);
   scrollToBottom();
 }
 
@@ -475,6 +486,35 @@ function wireCopyBtn(turnEl, text) {
   });
 }
 
+function wireAiTurnActions(turnEl, text) {
+  wireCopyBtn(turnEl, text);
+  wireEditBtn(turnEl, text);
+  wireShortenBtn(turnEl, text);
+}
+
+// "Shorten": ask for a tighter version of THIS suggestion, same tone, as a new
+// PenPal turn. Tone/language/model changes afterwards re-shorten it in place.
+function wireShortenBtn(turnEl, text) {
+  const btn = turnEl.querySelector(".chat-shorten-btn");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    if (_shortenBusy) return;
+    _shortenBusy = true;
+    btn.disabled = true;
+    try {
+      _snapshotText      = text;
+      _shortenMode       = true;
+      _explicitRun       = false;
+      _currentAiBubbleEl = appendAiBubble(null);
+      await runTab();
+    } finally {
+      _shortenBusy = false;
+      btn.disabled = false;
+    }
+  });
+}
+
+// "Edit" (on both You and PenPal turns): put this turn's text back into the input box.
 function wireEditBtn(turnEl, text) {
   const btn = turnEl.querySelector(".chat-edit-btn");
   if (!btn) return;
@@ -509,6 +549,7 @@ async function runTab() {
   if (isNewRewrite) {
     // New explicit rewrite — APPEND to history (do NOT clear previous turns)
     _snapshotText = text;
+    _shortenMode  = false;
     appendYouBubble(_snapshotText);
     _currentAiBubbleEl = appendAiBubble(null);
     // Clear the input now that the text has moved into the conversation
@@ -537,7 +578,7 @@ async function runTab() {
         settings: {
           ...settings,
           model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage)
+          systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage) + (_shortenMode ? SHORTEN_PROMPT : "")
         },
         history: historyMeta(settings, selectedTone, "tab")
       }, (res) => {

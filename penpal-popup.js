@@ -93,6 +93,8 @@ let lastResult      = "";
 let _explicitRun    = false; // true = user pressed Run/Enter → append a new turn
 let _snapshotText   = "";    // text captured for the in-flight turn
 let _currentAiTurn  = null;  // the latest AI .chat-turn element (regen target)
+let _shortenMode    = false; // true = the current AI turn is a "Shorten" of _snapshotText
+let _shortenBusy    = false; // guards against double-clicking Shorten mid-request
 let _validatedModels = [];   // validated models for the default provider
 
 // ── Pop-out / full-tab support ───────────────────────────────────────────
@@ -322,6 +324,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (isStandalone && popoutDraft?.lastResult) {
     lastResult = popoutDraft.lastResult;
     if (popoutDraft.inputText) appendYouTurn(popoutDraft.inputText);
+    _snapshotText  = popoutDraft.inputText || "";
     _currentAiTurn = appendAiTurn(lastResult);
   } else if (isStandalone && popoutDraft?.errorText) {
     if (popoutDraft.inputText) appendYouTurn(popoutDraft.inputText);
@@ -390,7 +393,11 @@ function appendYouTurn(text) {
     <div class="chat-turn-content">
       <div class="chat-bubble-label">You wrote</div>
       <div class="chat-bubble chat-you-bubble">${escapeHTML(text)}</div>
+      <div class="chat-turn-actions chat-you-actions">
+        <button class="chat-action-btn chat-edit-btn" title="Load this text back into the input box to edit">✎ Edit</button>
+      </div>
     </div>`;
+  wireTurnEdit(turn, text);
   chatHistoryEl().appendChild(turn);
   scrollChatToBottom();
   return turn;
@@ -400,9 +407,13 @@ function aiTurnInnerHTML(result) {
     <div class="chat-turn-content">
       <div class="chat-ai-header">
         <div class="chat-bubble-label chat-ai-label">✦ PenPal suggests</div>
-        <button class="chat-copy-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>
       </div>
       <div class="chat-bubble chat-ai-bubble">${escapeHTML(result)}</div>
+      <div class="chat-turn-actions">
+        <button class="chat-action-btn chat-copy-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>
+        <button class="chat-action-btn chat-edit-btn" title="Load this suggestion into the input box to edit">✎ Edit</button>
+        <button class="chat-action-btn chat-shorten-btn" title="Make a shorter, more concise version in the same tone">✂ Shorten</button>
+      </div>
     </div>`;
 }
 function aiTurnLoadingHTML() {
@@ -422,7 +433,7 @@ function appendAiTurn(result) {
     turn.innerHTML = aiTurnLoadingHTML();
   } else {
     turn.innerHTML = aiTurnInnerHTML(result);
-    wireTurnCopy(turn, result);
+    wireAiTurnActions(turn, result);
   }
   chatHistoryEl().appendChild(turn);
   scrollChatToBottom();
@@ -436,7 +447,7 @@ function setTurnLoading(turn) {
 function setTurnResult(turn, text) {
   if (!turn) return;
   turn.innerHTML = aiTurnInnerHTML(text);
-  wireTurnCopy(turn, text);
+  wireAiTurnActions(turn, text);
   scrollChatToBottom();
 }
 function setTurnError(turn, msg) {
@@ -448,6 +459,51 @@ function setTurnError(turn, msg) {
     </div>`;
   scrollChatToBottom();
 }
+function wireAiTurnActions(turn, text) {
+  wireTurnCopy(turn, text);
+  wireTurnEdit(turn, text);
+  wireTurnShorten(turn, text);
+}
+
+// "Edit" (on both You and PenPal turns): put this turn's text back into the
+// input box so it can be tweaked and re-sent.
+function wireTurnEdit(turn, text) {
+  const btn = turn.querySelector(".chat-edit-btn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const inputEl = document.getElementById("pp-input");
+    if (!inputEl) return;
+    inputEl.value = text;
+    userEditedInput = true; // don't let live page-selection sync overwrite it
+    autoGrowTextarea(inputEl, 5);
+    inputEl.focus();
+    inputEl.setSelectionRange(text.length, text.length);
+    inputEl.scrollTop = inputEl.scrollHeight;
+  });
+}
+
+// "Shorten": ask for a tighter version of THIS suggestion, same tone, as a new
+// PenPal turn. Tone/language/model changes afterwards re-shorten it in place.
+function wireTurnShorten(turn, text) {
+  const btn = turn.querySelector(".chat-shorten-btn");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    if (_shortenBusy) return;
+    _shortenBusy = true;
+    btn.disabled = true;
+    try {
+      _snapshotText  = text;
+      _shortenMode   = true;
+      _explicitRun   = false;
+      _currentAiTurn = appendAiTurn(null);
+      await runAI();
+    } finally {
+      _shortenBusy = false;
+      btn.disabled = false;
+    }
+  });
+}
+
 function wireTurnCopy(turn, text) {
   const btn = turn.querySelector(".chat-copy-btn");
   if (!btn) return;
@@ -551,20 +607,23 @@ function openFullTab() {
 
 async function runAI() {
   const inputEl = document.getElementById("pp-input");
-  const text = inputEl.value.trim();
-  if (!text) { inputEl.focus(); return; }
 
   const runBtn   = document.getElementById("pp-run-btn");
   const runLabel = document.getElementById("pp-run-label");
   const spin     = document.getElementById("pp-spin");
 
-  // New explicit send → append a fresh turn. Otherwise (tone/lang/model change)
-  // → regenerate the latest AI turn in place.
+  // New explicit send → append a fresh turn. Otherwise (tone/lang/model change,
+  // or Shorten) → regenerate the latest AI turn in place from _snapshotText,
+  // since the input box is cleared after each send.
   const isNew = _explicitRun || !_currentAiTurn;
   _explicitRun = false;
 
+  const text = isNew ? inputEl.value.trim() : _snapshotText;
+  if (!text) { inputEl.focus(); return; }
+
   if (isNew) {
     _snapshotText = text;
+    _shortenMode  = false;
     appendYouTurn(_snapshotText);
     _currentAiTurn = appendAiTurn(null);
     // SMS feel: clear the composer after sending (history retains the text)
@@ -593,7 +652,7 @@ async function runAI() {
         settings: {
           ...settings,
           model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, selectedTone)
+          systemPrompt: buildSystemPrompt(settings, selectedTone) + (_shortenMode ? SHORTEN_PROMPT : "")
         },
         history: historyMeta(settings, selectedTone, isStandalone ? "popout" : (isFullTab ? "tab" : "popup"))
       }, (res) => {
@@ -673,6 +732,11 @@ function resolveSettings(data) {
 
   return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
 }
+
+// Appended to the system prompt when the person clicks "Shorten".
+const SHORTEN_PROMPT = `
+
+SHORTEN MODE: The text is already a finished draft. Make it noticeably shorter and more concise (aim for roughly half the length or less). Cut filler, repetition, and unnecessary detail, but keep the key meaning, any specific facts, names, or requests, and the same tone described above.`;
 
 function buildSystemPrompt(settings, tone) {
   const t        = tone || settings.defaultTone || "casual";

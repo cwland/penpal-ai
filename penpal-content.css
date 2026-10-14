@@ -1151,7 +1151,9 @@
 }
 
 /* Copy / Replace actions directly below an AI suggestion */
-.aw-turn-actions { display: flex; gap: 6px; justify-content: flex-end; padding: 2px 2px 0; }
+.aw-turn-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; padding: 2px 2px 0; }
+.aw-turn-you-actions { justify-content: flex-start; }
+.aw-turn-btn:disabled { opacity: 0.55; cursor: default; }
 .aw-turn-btn {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--t-subtle); border: 1.5px solid var(--t-ring);

@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
-  "notes": "New: Rewrite History. Click the clock button next to Settings in any PenPal view (or History in the toolbar menu) to open a pop-out window listing every rewrite with timestamps. Copy the corrected text, or Edit to send it back to PenPal's input box. Choose how many rewrites to keep (default 100) under Settings → AI Models & Settings → History. Also: the full screen tab clears the input after you submit, and your messages there have an Edit button.",
+  "version": "1.3.1",
+  "notes": "New: Edit and Shorten buttons on every PenPal reply, in every view (side panel, page popup, toolbar popup, pop-out, and full screen tab). Shorten makes a tighter, more concise version of a suggestion in the same tone. Edit loads a suggestion, or anything you wrote, back into the input box so you can tweak and resend it. Copy now sits in the same button row below each reply.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }
