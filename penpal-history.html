@@ -133,9 +133,45 @@
     .chat-turn-you .chat-btn { background: transparent; border-color: var(--t-chip-border); color: var(--t-you-label); }
     .chat-turn-you .chat-btn:hover { background: var(--t-subtle); border-color: var(--t-accent-1); color: var(--t-accent-1); }
 
+    /* ── Search bar (bottom, chat-style) ── */
+    .hist-search {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+      padding: 10px 14px 12px;
+      background: var(--t-panel-bg); border-top: 1px solid var(--t-panel-border);
+    }
+    .hist-search-box {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+      background: var(--t-you-bg); border: 1.5px solid var(--t-chip-border);
+      border-radius: 22px; padding: 0 14px; transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .hist-search-box:focus-within { border-color: var(--t-accent-1); box-shadow: 0 0 0 3px var(--t-subtle); }
+    .hist-search-box svg { flex-shrink: 0; color: var(--t-you-label); }
+    #hist-search-input {
+      flex: 1; min-width: 0; background: transparent; border: none; outline: none;
+      color: var(--t-you-fg); font-family: inherit; font-size: 13.5px; padding: 10px 0;
+    }
+    #hist-search-input::placeholder { color: var(--t-you-label); opacity: 0.8; }
+    .hist-search-btn {
+      border: none; border-radius: 20px; cursor: pointer; font-family: inherit;
+      font-size: 12.5px; font-weight: 700; padding: 9px 16px; white-space: nowrap;
+      transition: opacity 0.12s, background 0.12s, border-color 0.12s;
+    }
+    #hist-search-go {
+      background: linear-gradient(135deg, var(--t-accent-1) 0%, var(--t-accent-2) 100%);
+      color: var(--t-on-accent); box-shadow: 0 3px 12px var(--t-glow);
+    }
+    #hist-search-go:hover { opacity: 0.9; }
+    #hist-search-clear {
+      background: transparent; border: 1.5px solid var(--t-chip-border); color: var(--t-you-label);
+      padding: 7.5px 14px;
+    }
+    #hist-search-clear:hover:not(:disabled) { border-color: var(--t-accent-1); color: var(--t-accent-1); background: var(--t-subtle); }
+    .hist-search-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+    mark.hist-hit { background: #fde047; color: #1a1226; border-radius: 3px; padding: 0 1px; }
+
     /* ── Toast ── */
     #hist-toast {
-      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(10px);
+      position: fixed; left: 50%; bottom: 74px; transform: translateX(-50%) translateY(10px);
       background: var(--t-accent-1); color: var(--t-on-accent);
       font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 20px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.22); opacity: 0; pointer-events: none;
@@ -165,6 +201,15 @@
       <p>Your rewrites will be saved here as you use PenPal, with the newest at the bottom.</p>
     </div>
   </div>
+
+  <form class="hist-search" id="hist-search" autocomplete="off">
+    <div class="hist-search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <input type="text" id="hist-search-input" placeholder="Search your history…" aria-label="Search history">
+    </div>
+    <button type="submit" class="hist-search-btn" id="hist-search-go">Search</button>
+    <button type="button" class="hist-search-btn" id="hist-search-clear" title="Clear the search and show everything" disabled>Clear</button>
+  </form>
 
   <div id="hist-toast"></div>
 

@@ -10,6 +10,13 @@ const placeholder = document.getElementById("chat-placeholder");
 const countEl     = document.getElementById("hist-count");
 const clearBtn    = document.getElementById("hist-clear");
 const toastEl     = document.getElementById("hist-toast");
+const searchForm  = document.getElementById("hist-search");
+const searchInput = document.getElementById("hist-search-input");
+const searchClear = document.getElementById("hist-search-clear");
+const placeholderTitle = placeholder.querySelector("h3");
+const placeholderText  = placeholder.querySelector("p");
+const PLACEHOLDER_TITLE = placeholderTitle.textContent;
+const PLACEHOLDER_TEXT  = placeholderText.textContent;
 
 // ── Theme ──
 chrome.storage.sync.get(["theme"], (d) => {
@@ -40,8 +47,22 @@ function timeLabel(ts) {
   return new Date(ts).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+// Escape text and wrap every case-insensitive match of the active search in <mark>.
+function highlight(text, q) {
+  const s = String(text ?? "");
+  if (!q) return escapeHTML(s);
+  const lower = s.toLowerCase();
+  let out = "", i = 0, at;
+  while ((at = lower.indexOf(q, i)) !== -1) {
+    out += escapeHTML(s.slice(i, at)) + `<mark class="hist-hit">${escapeHTML(s.slice(at, at + q.length))}</mark>`;
+    i = at + q.length;
+  }
+  return out + escapeHTML(s.slice(i));
+}
+
 function entryHTML(e) {
-  const meta = [e.toneLabel || e.tone, e.language].filter(Boolean).map(escapeHTML).join(" · ");
+  const q = searchQuery;
+  const meta = [e.toneLabel || e.tone, e.language].filter(Boolean).map(m => highlight(m, q)).join(" · ");
   return `
     <div class="hist-entry" data-id="${escapeHTML(e.id)}">
       <div class="chat-turn chat-turn-you">
@@ -49,7 +70,7 @@ function entryHTML(e) {
           <div class="chat-you-header">
             <div class="chat-bubble-label">You wrote <span class="hist-time">· ${escapeHTML(timeLabel(e.ts))}</span></div>
           </div>
-          <div class="chat-bubble chat-you-bubble">${escapeHTML(e.input)}</div>
+          <div class="chat-bubble chat-you-bubble">${highlight(e.input, q)}</div>
           <div class="chat-actions">
             <button class="chat-btn" data-act="edit-input" title="Load your original text into PenPal's input">&#9998; Edit</button>
           </div>
@@ -60,7 +81,7 @@ function entryHTML(e) {
           <div class="chat-ai-header">
             <div class="chat-bubble-label chat-ai-label">PenPal Suggests${meta ? ` <span class="hist-time">· ${meta}</span>` : ""}</div>
           </div>
-          <div class="chat-bubble chat-ai-bubble">${escapeHTML(e.output)}</div>
+          <div class="chat-bubble chat-ai-bubble">${highlight(e.output, q)}</div>
           <div class="chat-actions">
             <button class="chat-btn" data-act="edit-output" title="Load the corrected text into PenPal's input">&#9998; Edit</button>
             <button class="chat-btn" data-act="copy" title="Copy the corrected text">&#128203; Copy</button>
@@ -71,19 +92,36 @@ function entryHTML(e) {
 }
 
 let entries = [];
+let searchQuery = ""; // lower-cased active search ("" = show everything)
+
+function matchesSearch(e) {
+  if (!searchQuery) return true;
+  return [e.input, e.output, e.toneLabel || e.tone, e.language]
+    .some(v => String(v ?? "").toLowerCase().includes(searchQuery));
+}
 
 function render({ keepScroll = false } = {}) {
   const prevBottomGap = listEl.scrollHeight - listEl.scrollTop;
   listEl.querySelectorAll(".hist-entry, .hist-day").forEach(n => n.remove());
 
-  placeholder.style.display = entries.length ? "none" : "";
+  const shown = entries.filter(matchesSearch);
+  const noun = n => `rewrite${n === 1 ? "" : "s"}`;
+
+  placeholder.style.display = shown.length ? "none" : "";
+  if (searchQuery && entries.length) {
+    placeholderTitle.textContent = "No matches";
+    placeholderText.textContent  = "Nothing in your history contains that text. Try a different search, or hit Clear.";
+  } else {
+    placeholderTitle.textContent = PLACEHOLDER_TITLE;
+    placeholderText.textContent  = PLACEHOLDER_TEXT;
+  }
   clearBtn.disabled = !entries.length;
-  countEl.textContent = entries.length
-    ? `${entries.length} saved rewrite${entries.length === 1 ? "" : "s"}`
-    : "PenPal AI";
+  countEl.textContent = !entries.length ? "PenPal AI"
+    : searchQuery ? `${shown.length} of ${entries.length} ${noun(entries.length)} match`
+    : `${entries.length} saved ${noun(entries.length)}`;
 
   let html = "", lastDay = "";
-  for (const e of entries) {
+  for (const e of shown) {
     const day = dayLabel(e.ts);
     if (day !== lastDay) { html += `<div class="hist-day">${escapeHTML(day)}</div>`; lastDay = day; }
     html += entryHTML(e);
@@ -141,6 +179,27 @@ listEl.addEventListener("click", async (ev) => {
   });
 });
 
+// ── Search ──
+// Enter or the Search button filters to entries containing the text (case-
+// insensitive, in either the original or the corrected text). Clear resets.
+function applySearch(raw) {
+  searchQuery = String(raw ?? "").trim().toLowerCase();
+  searchClear.disabled = !searchQuery && !searchInput.value;
+  render();
+}
+searchForm.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  applySearch(searchInput.value);
+});
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  applySearch("");
+  searchInput.focus();
+});
+searchInput.addEventListener("input", () => {
+  searchClear.disabled = !searchQuery && !searchInput.value;
+});
+
 // Two-click confirm (no blocking browser dialogs).
 let confirmTimer = null;
 clearBtn.addEventListener("click", () => {
@@ -168,6 +227,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // Refresh "Today"/"Yesterday" labels if the window stays open past midnight.
 window.addEventListener("focus", () => render({ keepScroll: true }));
 
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") window.close(); });
+// Escape clears an active search first; otherwise it closes the window.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (searchQuery || searchInput.value) { searchClear.click(); return; }
+  window.close();
+});
 
 load();
