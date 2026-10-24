@@ -92,6 +92,12 @@ function entryHTML(e) {
 }
 
 let entries = [];
+let historyLimit = 100; // Settings → History (same default as background.js)
+
+function readHistoryLimit(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 1000) : 100; // 1000 = background.js HISTORY_HARD_MAX
+}
 let searchQuery = ""; // lower-cased active search ("" = show everything)
 
 function matchesSearch(e) {
@@ -118,6 +124,7 @@ function render({ keepScroll = false } = {}) {
   clearBtn.disabled = !entries.length;
   countEl.textContent = !entries.length ? "PenPal AI"
     : searchQuery ? `${shown.length} of ${entries.length} ${noun(entries.length)} match`
+    : historyLimit > 0 ? `${entries.length} of ${historyLimit} saved ${noun(historyLimit)}`
     : `${entries.length} saved ${noun(entries.length)}`;
 
   let html = "", lastDay = "";
@@ -222,6 +229,7 @@ function resetClear() {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes[HISTORY_KEY]) load({ keepScroll: true });
   if (area === "sync" && changes.theme) document.body.setAttribute("data-theme", changes.theme.newValue || "default");
+  if (area === "sync" && changes.historyLimit) { historyLimit = readHistoryLimit(changes.historyLimit.newValue); render({ keepScroll: true }); }
 });
 
 // Refresh "Today"/"Yesterday" labels if the window stays open past midnight.
@@ -234,4 +242,8 @@ document.addEventListener("keydown", (e) => {
   window.close();
 });
 
-load();
+// Read the History limit from Settings, then load the list.
+chrome.storage.sync.get(["historyLimit"], (d) => {
+  if (!chrome.runtime.lastError) historyLimit = readHistoryLimit(d && d.historyLimit);
+  load();
+});

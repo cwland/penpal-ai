@@ -856,6 +856,7 @@ function wirePopupEvents(text, settings) {
         sessionLanguage = value; // session-only — NOT saved to storage
         const l = SESSION_LANGUAGES.find(x => x.id === value);
         if (l) { if (langEmoji) langEmoji.textContent = l.icon; langBtn.setAttribute("aria-label", `Language — ${l.label}`); }
+        // Re-do the latest reply in the new language (in place); the input box is left alone.
         if (awCurrentAiTurn) { awExplicitRun = false; runAI(awSnapshotText, settings); }
       }, "Language (this session)");
     });

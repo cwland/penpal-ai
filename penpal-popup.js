@@ -302,7 +302,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       openModelMenu(langBtn, items, current, (value) => {
         sessionLanguage = value; // session-only — NOT saved to storage
         setLangIcon();
-        if (_currentAiTurn && document.getElementById("pp-input").value.trim().length > 2) { _explicitRun = false; runAI(); }
+        // Re-do the latest reply in the new language (in place); the input box is left alone.
+        if (_currentAiTurn) { _explicitRun = false; runAI(); }
       }, "Language (this session)");
     });
   }

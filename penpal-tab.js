@@ -317,6 +317,7 @@ async function setupSelectors(settings) {
       openModelMenu(langBtn, items, current, (value) => {
         sessionLanguage = value;
         setLangIcon();
+        // Re-do the latest reply in the new language (in place); the input box is left alone.
         if (_currentAiBubbleEl) { _explicitRun = false; runTab(); }
       }, "Language (this session)");
     });
