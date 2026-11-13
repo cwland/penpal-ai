@@ -7,7 +7,7 @@
 // Built-in providers, custom endpoints and local servers all use this flow.
 //
 // Uses globals from penpal-ai-config.js (data model + helpers) and
-// penpal-settings.js (PROVIDER_INFO, PROVIDER_ENDPOINTS, PROVIDER_GLYPHS,
+// penpal-settings.js (PROVIDER_INFO, PROVIDER_GLYPHS,
 // PROVIDER_TEMPLATES, PROVIDER_ICON_LIBRARY, escapeHTML, openIconPicker,
 // originPatternForURL, renderProviderDebugBubble).
 

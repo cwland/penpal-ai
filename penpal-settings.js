@@ -1,21 +1,5 @@
 // options.js — Settings page logic
 
-// ── Default API endpoints ─────────────────────────────────────────────────
-// NOTE: keep this in sync with PROVIDER_ENDPOINTS in background.js
-const PROVIDER_ENDPOINTS = {
-  openrouter: "https://openrouter.ai/api/v1/chat/completions",
-  openai:     "https://api.openai.com/v1/chat/completions",
-  anthropic:  "https://api.anthropic.com/v1/messages",
-  google:     "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  mistral:    "https://api.mistral.ai/v1/chat/completions",
-  meta:       "https://openrouter.ai/api/v1/chat/completions", // routed via openrouter
-  groq:       "https://api.groq.com/openai/v1/chat/completions",
-  cohere:     "https://api.cohere.ai/v2/chat",
-  together:   "https://api.together.xyz/v1/chat/completions",
-  fireworks:  "https://api.fireworks.ai/inference/v1/chat/completions",
-  deepseek:   "https://api.deepseek.com/v1/chat/completions",
-  xai:        "https://api.x.ai/v1/chat/completions"
-};
 
 // ── Visibility icons for the API key field ────────────────────────────────
 const EYE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -174,10 +158,6 @@ const PROVIDER_INFO = {
   }
 };
 
-// Snapshot of the built-in provider IDs, captured before any custom providers
-// get registered into PROVIDER_INFO — used to scope "Manage Default Providers"
-// and to split the provider selector into "Default" vs "Custom" groups.
-const BUILTIN_PROVIDER_IDS = Object.keys(PROVIDER_INFO);
 
 // ── Icon library for the custom-provider icon picker ───────────────────────
 const PROVIDER_ICON_LIBRARY = [
