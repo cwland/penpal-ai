@@ -1,5 +1,8 @@
 // Background service worker — PenPal AI Writing Assistant
 
+// Shared My Models logic (migration, fallback chain, request settings).
+importScripts("penpal-ai-config.js");
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GitHub-based update system (side-loaded installs only)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -156,6 +159,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install" || details.reason === "update") {
     chrome.storage.local.set({ penpalUpdate: { available: false } });
     checkForUpdate({ force: true });
+    migrateSettingsIfNeeded().catch(err => console.warn("PenPal: settings migration failed:", err?.message || err));
   }
 
   chrome.contextMenus.create({
@@ -198,6 +202,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         else sendResponse({ success: true, result });
       })
       .catch(err => sendResponse({ success: false, error: err.message, debug: err.debug }));
+    return true;
+  }
+  if (request.action === "rewrite") {
+    rewriteWithFallback(request).then(sendResponse)
+      .catch(err => sendResponse({ success: false, error: err?.message || String(err) }));
+    return true;
+  }
+  if (request.action === "validateConnection") {
+    validateConnection(request).then(sendResponse);
     return true;
   }
   if (request.action === "openOptions") {
@@ -526,7 +539,115 @@ async function listProviderModels({ provider = "openrouter", apiKey = "", endpoi
   }
 }
 
-async function callAIAPI(text, settings, { debug = false } = {}) {
+// ═══════════════════════════════════════════════════════════════════════════
+// My Models — connection validation and rewrite with automatic fallback
+// ═══════════════════════════════════════════════════════════════════════════
+
+const REWRITE_TIMEOUT_MS = 30 * 1000; // per model, before moving to the next one
+
+// Model IDs exactly as the server returns them (case preserved — local
+// servers like LM Studio use mixed-case IDs), minus Google's "models/" prefix.
+function extractModelIdsRaw(json) {
+  let arr = [];
+  if (json && Array.isArray(json.data)) arr = json.data;
+  else if (json && Array.isArray(json.models)) arr = json.models;
+  else if (Array.isArray(json)) arr = json;
+  return arr
+    .map(m => (typeof m === "string" ? m : (m && (m.id || m.name))))
+    .filter(Boolean)
+    .map(id => String(id).replace(/^models\//, ""));
+}
+
+// Check a provider key / custom endpoint by loading its model list.
+// Returns { ok, ids } or { ok:false, error, manualModel? }.
+async function validateConnection({ provider, apiKey = "", endpoint, apiFormat } = {}) {
+  const builtin = Object.prototype.hasOwnProperty.call(PROVIDER_ENDPOINTS, provider);
+  const key = String(apiKey || "").trim();
+  if (builtin && !key) return { ok: false, error: "Enter your API key first." };
+
+  const format = (provider === "anthropic" || provider === "cohere") ? provider : (apiFormat || "openai");
+  const chatEndpoint = builtin ? PROVIDER_ENDPOINTS[provider] : endpoint;
+  const url = chatEndpoint && modelsURLFor(provider, chatEndpoint, format);
+  if (!url) {
+    return { ok: false, manualModel: true,
+      error: "This server doesn't have a standard model list address. Enter the model ID by hand." };
+  }
+
+  const headers = {};
+  if (key) {
+    if (format === "anthropic") { headers["anthropic-version"] = "2023-06-01"; headers["x-api-key"] = key; }
+    else headers["Authorization"] = `Bearer ${key}`;
+  }
+
+  const keyRejected = (status) => ({ ok: false, error: `The provider rejected this API key (HTTP ${status}). Check it and try again.` });
+
+  try {
+    // OpenRouter's model list is public, so check the key separately.
+    if (provider === "openrouter" || provider === "meta") {
+      const kr = await fetch("https://openrouter.ai/api/v1/key", { method: "GET", headers });
+      if (!kr.ok) return keyRejected(kr.status);
+    }
+    const resp = await fetch(url, { method: "GET", headers });
+    if (resp.status === 401 || resp.status === 403) return keyRejected(resp.status);
+    if (!resp.ok) return { ok: false, error: `Couldn't load the model list (HTTP ${resp.status}).` };
+    const json = await resp.json().catch(() => null);
+    const ids = extractModelIdsRaw(json);
+    if (!ids.length) return { ok: false, manualModel: true, error: "The server returned no models. Enter the model ID by hand." };
+    return { ok: true, ids };
+  } catch (err) {
+    return { ok: false, error: `Couldn't reach the server: ${err?.message || err}` };
+  }
+}
+
+function _shortFailureReason(err, timedOut) {
+  if (timedOut) return "timeout";
+  const msg = String(err?.message || err || "error");
+  if (/^Network error reaching endpoint/i.test(msg)) return "couldn't connect";
+  return msg.length > 120 ? msg.slice(0, 117) + "…" : msg;
+}
+
+// Run the user's My Models list in order (session pick first), falling back to
+// the next model on any failure. Never silent: `notice` names who answered.
+async function rewriteWithFallback({ text, systemPrompt, history, preferredModelId } = {}, { timeoutMs = REWRITE_TIMEOUT_MS } = {}) {
+  const data = await chrome.storage.sync.get([
+    "aiModels", "aiConnections", "apiKeys", "stripDashes",
+    "provider", "model", "apiKey", "customProviders", "customModels", "endpointOverrides"
+  ]);
+  const aiModels = resolveAiModels(data);
+  const ctx = { aiConnections: resolveAiConnections(data), apiKeys: resolveApiKeys(data) };
+  if (!aiModels.length) return { success: false, error: "No AI model set up yet. Open ⚙ Settings → AI Models and add a model." };
+
+  const attempts = [];
+  for (const entry of buildFallbackChain(aiModels, preferredModelId)) {
+    const settings = requestSettingsFor(entry, ctx);
+    if (!settings) { attempts.push({ modelId: entry.id, label: entry.label, error: "connection settings missing" }); continue; }
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const result = await callAIAPI(text, { ...settings, systemPrompt, stripDashes: data.stripDashes }, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (history) addHistoryEntry(text, result, history, { model: entry.model }).catch(() => {});
+      return { success: true, result, usedModelId: entry.id, usedLabel: entry.label,
+        notice: describeAttempts(attempts, entry), attempts };
+    } catch (err) {
+      clearTimeout(timer);
+      attempts.push({ modelId: entry.id, label: entry.label, error: _shortFailureReason(err, ctrl.signal.aborted) });
+    }
+  }
+  return { success: false, attempts,
+    error: "None of your models responded:\n" + attempts.map(a => `• ${a.label}: ${a.error}`).join("\n") };
+}
+
+// Write the converted My Models list the first time a 1.5+ build runs.
+async function migrateSettingsIfNeeded() {
+  const data = await chrome.storage.sync.get(null);
+  if (Array.isArray(data.aiModels)) return;
+  const { aiModels, aiConnections, apiKeys } = migrateLegacySettings(data);
+  await chrome.storage.sync.set({ aiModels, aiConnections, apiKeys });
+}
+
+async function callAIAPI(text, settings, { debug = false, signal } = {}) {
   const { apiKey, provider = "openrouter", model, systemPrompt, endpointOverrides, apiFormat } = settings;
 
   // Wrap the user text in clear delimiters so the model cannot confuse it with instructions
@@ -599,7 +720,7 @@ async function callAIAPI(text, settings, { debug = false } = {}) {
 
   let response;
   try {
-    response = await fetch(endpoint, { method: "POST", headers, body });
+    response = await fetch(endpoint, { method: "POST", headers, body, signal });
   } catch (err) {
     if (debugInfo) debugInfo.networkError = err.message;
     const wrapped = new Error(`Network error reaching endpoint: ${err.message}`);
