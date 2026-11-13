@@ -191,3 +191,11 @@ test("makeAiId produces distinct prefixed ids", () => {
   assert.match(a, /^m_[a-z0-9]+$/);
   assert.notEqual(a, b);
 });
+
+test("migrate: converted entries get the same ids every time, so a session pick matches before the list is saved", () => {
+  const c = cfg();
+  const data = { provider: "openai", model: "gpt-4.1",
+    customProviders: [{ id: "custom_x", name: "X", endpoint: "http://localhost:1/v1/chat/completions" }],
+    customModels: { custom_x: [{ value: "llama", label: "llama" }] } };
+  assert.deepEqual(plain(c.migrateLegacySettings(data)).aiModels.map(m => m.id), plain(c.migrateLegacySettings(data)).aiModels.map(m => m.id));
+});

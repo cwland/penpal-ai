@@ -206,8 +206,12 @@ function migrateLegacySettings(data) {
     aiConnections[cp.id] = { name: cp.name, icon: cp.icon || "🤖", endpoint: cp.endpoint, apiFormat: cp.apiFormat || "openai" };
   }
 
+  // Ids are derived from the order, not random, so code that migrates on the
+  // fly (before the converted list is saved) gets the same ids every time.
   const push = (entry) => {
-    if (!aiModels.some(m => m.provider === entry.provider && m.model === entry.model)) aiModels.push(entry);
+    if (!aiModels.some(m => m.provider === entry.provider && m.model === entry.model)) {
+      aiModels.push({ ...entry, id: `m_legacy_${aiModels.length + 1}` });
+    }
   };
 
   const provider = data.provider;
