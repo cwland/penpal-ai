@@ -231,7 +231,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const vEl = document.getElementById("pp-version");
     if (vEl) vEl.textContent = "v" + chrome.runtime.getManifest().version;
   } catch (_) {}
-  if (typeof maybeShowUpdateToast === "function") maybeShowUpdateToast();
   await setupSelectors(settings);
   setupInput();
   setupClear();

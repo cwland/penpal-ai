@@ -659,9 +659,6 @@ async function openPopup(text, opts = {}) {
   popupJustOpened = true;
   setTimeout(() => { popupJustOpened = false; }, 300);
 
-  // Surface any available update (non-blocking; auto-dismisses).
-  if (typeof maybeShowUpdateToast === "function") maybeShowUpdateToast();
-
   requestAnimationFrame(() => {
     popup?.classList.add("aw-popup-show");
     if (docked) shiftPageForPanel(true);

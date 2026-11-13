@@ -156,6 +156,14 @@ chrome.runtime.onInstalled.addListener((details) => {
 
   // On install/update, clear any stale "update available" flag (the user may
   // have just updated) and run a fresh check.
+  // After moving to a new version, open Settings with the What's New pop-up.
+  // (Reloading an unpacked build fires "update" with the same version — skip that.)
+  const currentVersion = chrome.runtime.getManifest().version;
+  if (details.reason === "update" && details.previousVersion && details.previousVersion !== currentVersion) {
+    chrome.storage.local.set({ penpalWhatsNew: { from: details.previousVersion, to: currentVersion } });
+    chrome.runtime.openOptionsPage();
+  }
+
   if (details.reason === "install" || details.reason === "update") {
     chrome.storage.local.set({ penpalUpdate: { available: false } });
     checkForUpdate({ force: true });

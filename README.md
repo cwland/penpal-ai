@@ -26,7 +26,7 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
 - **Smart model list** — The model picker validates against your provider on load and only lists models your API key can actually use, so you never pick one that errors.
 - **Shorten & Edit on every reply** — Every PenPal suggestion has a row of buttons below it ending in **✎ Edit** and **✂ Shorten**, in every view (side panel, page popup, toolbar popup, pop-out, and full screen tab). **Shorten** adds a new, tighter version of that suggestion (roughly half the length) in the same tone and language; change the tone or model afterwards and it re-shortens with the new setting. **Edit** loads the suggestion back into the input box so you can tweak and resend it. Your own "You wrote" messages have an **Edit** button too.
 - **Auto-growing input** — The text box starts at one line, grows row-by-row as you type or paste (up to five lines, then scrolls), and collapses back when cleared.
-- **Version display & update checks** — The current version shows next to the PenPal branding in every view. Side-loaded installs check this repo's `version.json` (max once per 24h) and show a small, non-blocking toast when a newer release is available. Web Store builds skip update checks entirely.
+- **Version display & update checks** — The current version shows next to the PenPal branding in every view. Side-loaded installs check this repo's `version.json` (max once per 24h) When a newer version is out, an **Update available** button appears in the toolbar menu and a banner appears at the top of Settings, both linking to this repo. Dismiss the banner with × and it stays hidden for that version. After you update, Settings opens with a **What's New** window listing every version's changes, newest first (click the version badge in Settings to open it any time). Web Store builds skip update checks entirely.
 - **Rewrite history** — Every rewrite is saved on your device with a timestamp. Click the clock button next to Settings in any view (or **History** in the toolbar menu) to open the history in its own pop-out window, oldest to newest. **Copy** the corrected text, or **Edit** to load your original or the corrected text back into the input of the PenPal view you opened it from. Choose how many rewrites to keep (or turn history off) under **Settings → AI Models & Settings → History** — the default is 100. **Clear all** deletes them.
 - **Writing style notes** — Set a persistent personal style description (e.g. "avoid passive voice, keep sentences under 20 words") applied to every request.
 - **Customizable system prompt** — Override the default prompt entirely for full control over AI behavior.
@@ -160,7 +160,10 @@ penpal-ai/
 ├── penpal-popup.js        # Popup/pop-out logic — tone/language selection, rewrite flow, settings access
 ├── penpal-tab.html        # Full screen tab — two-column layout (reuses penpal-popup.js)
 ├── penpal-tab.js          # Full screen tab logic
-├── penpal-models.js       # Session model picker (from My Models), fallback notice, update toast
+├── penpal-models.js       # Session model picker (from My Models), fallback notice
+├── penpal-updates.js      # Update-notice helpers shared by the toolbar menu and Settings
+├── penpal-settings-updates.js # Settings: update banner and What's New window
+├── CHANGELOG.json         # Version history shown in What's New (newest first)
 ├── penpal-content.js      # Content script — inline panel, side panel, text selection, page injection
 ├── penpal-content.css     # Styles for the inline/side panel
 ├── penpal-settings.html   # Settings page HTML
@@ -223,7 +226,7 @@ API keys are stored locally in Chrome's extension storage and are never sent any
 2. Make your changes — the extension can be reloaded from `chrome://extensions` by clicking the refresh icon on the extension card.
 3. Run the automated tests with `npm test` (requires Node 20+; no packages to install). They load `background.js` with a stubbed `chrome` API, so no browser is needed.
 4. Test across a few different text field types (plain `<input>`, `<textarea>`, and `contenteditable` elements behave differently).
-5. When bumping the version, update both `manifest.json` and `version.json` — a test checks they match.
+5. When bumping the version, update `manifest.json` and `version.json`, and add an entry at the top of `CHANGELOG.json` — tests check all three match.
 6. Open a pull request with a clear description of what changed and why.
 
 ---

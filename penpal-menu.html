@@ -304,6 +304,15 @@
       color: var(--t-you-label);
     }
     .pm-note.show { display: block; }
+    .pm-update {
+      display: none; width: calc(100% - 16px); margin: 0 8px 8px; padding: 9px 12px;
+      border: none; border-radius: 10px; cursor: pointer; text-align: left;
+      font: inherit; font-size: 12.5px; font-weight: 600; color: #fff;
+      background: linear-gradient(135deg, #6d28d9, #4f46e5);
+    }
+    .pm-update.show { display: flex; align-items: center; gap: 8px; }
+    .pm-update:hover { filter: brightness(1.08); }
+    .pm-update:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 2px; }
   </style>
 </head>
 <body data-theme="default">
@@ -314,6 +323,10 @@
       <div class="pm-sub">Your words, polished</div>
     </div>
   </div>
+
+  <button class="pm-update" id="pm-update" type="button">
+    <span aria-hidden="true">⬆</span><span id="pm-update-label">Update available</span>
+  </button>
 
   <nav class="pm-menu" aria-label="PenPal controls">
     <button class="pm-item" id="pm-settings" type="button">
@@ -344,6 +357,7 @@
 
   <div class="pm-note" id="pm-note"></div>
 
+  <script src="penpal-updates.js"></script>
   <script src="penpal-menu.js"></script>
 </body>
 </html>

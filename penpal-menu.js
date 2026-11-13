@@ -18,6 +18,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (vEl) vEl.textContent = "v" + chrome.runtime.getManifest().version;
   } catch (_) {}
 
+  // ── Update available → open the GitHub repo (only shown when there is one) ──
+  try {
+    chrome.runtime.sendMessage({ action: "checkForUpdate" }, () => { void chrome.runtime.lastError; });
+    chrome.storage.local.get(["penpalUpdate"], (d) => {
+      if (chrome.runtime.lastError) return;
+      const u = d && d.penpalUpdate;
+      if (!updateIsAvailable(u, chrome.runtime.getManifest().version)) return;
+      const btn = document.getElementById("pm-update");
+      document.getElementById("pm-update-label").textContent = `Update available — v${u.version}`;
+      btn.title = "Open PenPal on GitHub";
+      btn.classList.add("show");
+      btn.addEventListener("click", () => {
+        try { chrome.tabs.create({ url: PENPAL_REPO_URL }); } catch (_) {}
+        window.close();
+      });
+    });
+  } catch (_) {}
+
   const note = document.getElementById("pm-note");
   const showNote = (msg) => { if (note) { note.textContent = msg; note.classList.add("show"); } };
 

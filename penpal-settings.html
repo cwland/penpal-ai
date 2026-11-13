@@ -1420,14 +1420,73 @@
     .mm-model-select { width: 100%; margin-top: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
     .mm-actions { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border-card); flex-wrap: wrap; }
     .add-model-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* ── Update banner (hangs at the top until dismissed for that version) ── */
+    #update-banner {
+      position: sticky; top: 0; z-index: 900;
+      display: none; align-items: center; justify-content: center; gap: 10px;
+      padding: 10px 48px 10px 24px; font-size: 13px; font-weight: 500; color: #fff;
+      background: linear-gradient(135deg, #6d28d9, #4f46e5);
+      box-shadow: 0 2px 10px rgba(79,70,229,0.25);
+    }
+    #update-banner.visible { display: flex; }
+    #update-banner a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+    #update-banner-close {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.15); border: none; color: #fff; width: 26px; height: 26px;
+      border-radius: 50%; cursor: pointer; font-size: 15px; line-height: 26px; text-align: center;
+    }
+    #update-banner-close:hover { background: rgba(255,255,255,0.3); }
+    .page-version { cursor: pointer; }
+    .page-version:hover { color: var(--text-primary); }
+
+    /* ── What's New pop-up ── */
+    #whats-new { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; background: rgba(10,10,20,0.45); padding: 20px; }
+    #whats-new.visible { display: flex; }
+    .wn-dialog { width: min(560px, 100%); max-height: 80vh; display: flex; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .wn-head { display: flex; align-items: center; gap: 10px; padding: 18px 20px 12px; }
+    .wn-head h2 { font-size: 17px; font-weight: 800; color: var(--text-primary); flex: 1; }
+    .wn-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: 8px; width: 30px; height: 30px; }
+    .wn-close:hover { color: var(--text-primary); background: var(--bg-opt); }
+    .wn-sub { padding: 0 20px 10px; font-size: 12px; color: var(--text-muted); }
+    .wn-list { overflow-y: auto; padding: 0 12px 12px; }
+    .wn-item { border-top: 1px solid var(--border-card); }
+    .wn-toggle { width: 100%; display: flex; align-items: center; gap: 8px; padding: 11px 8px; background: none; border: none; cursor: pointer; text-align: left; font: inherit; color: var(--text-primary); }
+    .wn-caret { display: inline-block; width: 12px; color: var(--text-muted); transition: transform .15s; }
+    .wn-item.open .wn-caret { transform: rotate(90deg); }
+    .wn-ver { font-weight: 700; font-size: 14px; }
+    .wn-new { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #a5b4fc; border: 1px solid #5c6ef5; background: rgba(92,110,245,0.1); border-radius: 999px; padding: 1px 7px; }
+    .wn-date { margin-left: auto; font-size: 12px; color: var(--text-muted); }
+    .wn-notes { display: none; margin: 0 8px 12px 28px; padding-left: 16px; font-size: 13px; line-height: 1.55; color: var(--text-secondary, var(--text-primary)); }
+    .wn-item.open .wn-notes { display: block; }
+    .wn-notes li { margin-bottom: 5px; }
+    .wn-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px 16px; border-top: 1px solid var(--border-card); }
   </style>
 </head>
 <body>
 
-<!-- Setup required banner (hidden when key is set) -->
+<!-- Update available (hidden once dismissed for that version) -->
+<div id="update-banner" role="status">
+  <span aria-hidden="true">⬆</span>
+  <span id="update-banner-text">A new version of PenPal is available.</span>
+  <a id="update-banner-link" href="https://github.com/cwland/penpal-ai" target="_blank" rel="noopener">View on GitHub →</a>
+  <button id="update-banner-close" type="button" title="Dismiss for this version" aria-label="Dismiss update notice for this version">×</button>
+</div>
+
+<!-- What's New (opens after an update, or from the version badge) -->
+<div id="whats-new" role="dialog" aria-modal="true" aria-labelledby="wn-title">
+  <div class="wn-dialog">
+    <div class="wn-head"><span aria-hidden="true">✨</span><h2 id="wn-title">What's New in PenPal</h2><button class="wn-close" id="wn-close" type="button" aria-label="Close">✕</button></div>
+    <div class="wn-sub" id="wn-sub"></div>
+    <div class="wn-list" id="wn-list"></div>
+    <div class="wn-foot"><button class="add-model-btn" id="wn-done" type="button">Got it</button></div>
+  </div>
+</div>
+
+<!-- Setup required banner (hidden when a model is set up) -->
 <div id="setup-banner">
   <span class="setup-icon">🔑</span>
-  <span>An API key is required to use this extension. &nbsp;<a id="banner-go-api">Go to AI Models &amp; Settings →</a></span>
+  <span>Add an AI model to start using PenPal. &nbsp;<a id="banner-go-api">Go to AI Models &amp; Settings →</a></span>
 </div>
 
 <!-- Page header with tabs -->
@@ -1438,7 +1497,7 @@
       <h1>PenPal AI <span class="page-subtitle">Writing Assistant</span></h1>
       <p>Your words, polished</p>
     </div>
-    <span class="page-version" id="page-version"></span>
+    <span class="page-version" id="page-version" role="button" tabindex="0" title="See what's new"></span>
   </div>
 
   <nav class="tab-bar">
@@ -2209,5 +2268,7 @@
 <script src="penpal-ai-config.js"></script>
 <script src="penpal-settings.js"></script>
 <script src="penpal-settings-models.js"></script>
+<script src="penpal-updates.js"></script>
+<script src="penpal-settings-updates.js"></script>
 </body>
 </html>

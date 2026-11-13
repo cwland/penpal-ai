@@ -137,7 +137,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const vEl = document.getElementById("pp-version");
     if (vEl) vEl.textContent = "v" + chrome.runtime.getManifest().version;
   } catch (_) {}
-  if (typeof maybeShowUpdateToast === "function") maybeShowUpdateToast();
 
   if (isStandalone) {
     document.body.classList.add("pp-standalone");
