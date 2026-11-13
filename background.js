@@ -695,7 +695,7 @@ async function callAIAPI(text, settings, { debug = false, signal } = {}) {
     throw wrapped;
   }
 
-  let cleaned = stripCommentary(stripThinkTags(raw));
+  let cleaned = stripCommentary(stripThinkTags(stripEchoedDelimiters(raw)));
 
   // Hard-coded post-process: some models keep sneaking in em/en dashes even
   // when explicitly told not to. Default ON; user can disable in Settings.
@@ -724,6 +724,15 @@ function stripDashes(text) {
 
   // Trailing comma left by a dash at the very end of the text
   return result.replace(/,\s*$/, "").trim();
+}
+
+/**
+ * Remove the <text_to_edit> delimiters PenPal wraps the user's text in, if the
+ * model echoed them back (common with small on-device models like Apple's).
+ */
+function stripEchoedDelimiters(text) {
+  if (!text) return text;
+  return text.replace(/<\/?text_to_edit>/gi, "").trim();
 }
 
 /**
