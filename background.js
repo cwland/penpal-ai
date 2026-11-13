@@ -244,14 +244,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  // ── Live model validation ─────────────────────────────────────────────
-  // Returns the set of model IDs the provider actually exposes for this key,
-  // so the picker can hide presets that would error. Best-effort: on any
-  // failure it returns { ok:false } and callers keep the full curated list.
-  if (request.action === "listModels") {
-    listProviderModels(request).then(sendResponse);
-    return true;
-  }
 
   // ── History window ────────────────────────────────────────────────────
   if (request.action === "openHistory") {
@@ -474,70 +466,8 @@ function modelsURLFor(provider, chatEndpoint, format) {
   return null; // unknown shape (custom server) — skip validation
 }
 
-// Pull the available model IDs from a provider's /models response. Handles the
-// common shapes: { data:[{id}] } (OpenAI-style), { models:[{id|name}] } (Cohere/
-// Google). IDs are lowercased and any leading "models/" prefix is stripped so
-// they compare cleanly against our preset values.
-function extractModelIds(json) {
-  let arr = [];
-  if (json && Array.isArray(json.data)) arr = json.data;
-  else if (json && Array.isArray(json.models)) arr = json.models;
-  else if (Array.isArray(json)) arr = json;
-  return arr
-    .map(m => (typeof m === "string" ? m : (m && (m.id || m.name))))
-    .filter(Boolean)
-    .map(id => String(id).toLowerCase().replace(/^models\//, ""));
-}
 
-// Cache validation results briefly (per provider+key) so opening the panel
-// repeatedly in a session doesn't hammer the provider's API.
-const MODELS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-async function listProviderModels({ provider = "openrouter", apiKey = "", endpointOverrides, apiFormat } = {}) {
-  try {
-    const format = (provider === "anthropic" || provider === "cohere") ? provider : (apiFormat || "openai");
-    const chatEndpoint = endpointOverrides?.[provider] || PROVIDER_ENDPOINTS[provider] || PROVIDER_ENDPOINTS.openrouter;
-    const url = modelsURLFor(provider, chatEndpoint, format);
-    if (!url) return { ok: false, reason: "no-endpoint" };
-
-    // Cache key is provider + a short fingerprint of the key (so switching keys re-checks).
-    const fp = apiKey ? String(apiKey.length) + apiKey.slice(-4) : "nokey";
-    const cacheKey = `modelValidation:${provider}:${fp}`;
-    try {
-      const cached = (await chrome.storage.session.get(cacheKey))[cacheKey];
-      if (cached && Date.now() - cached.ts < MODELS_CACHE_TTL && Array.isArray(cached.ids)) {
-        return { ok: true, ids: cached.ids, cached: true };
-      }
-    } catch (_) {}
-
-    const headers = {};
-    if (apiKey) {
-      if (format === "anthropic") { headers["anthropic-version"] = "2023-06-01"; headers["x-api-key"] = apiKey; }
-      else headers["Authorization"] = `Bearer ${apiKey}`;
-    }
-    if (provider === "openrouter" || provider === "meta") {
-      headers["HTTP-Referer"] = "chrome-extension://penpal-ai-writing-assistant";
-      headers["X-Title"] = "PenPal AI Writing Assistant";
-    }
-
-    let resp;
-    try {
-      resp = await fetch(url, { method: "GET", headers });
-    } catch (_) {
-      return { ok: false, reason: "network" };
-    }
-    if (!resp.ok) return { ok: false, reason: `http-${resp.status}` };
-
-    const json = await resp.json().catch(() => null);
-    const ids = extractModelIds(json);
-    if (!ids.length) return { ok: false, reason: "empty" };
-
-    try { await chrome.storage.session.set({ [cacheKey]: { ids, ts: Date.now() } }); } catch (_) {}
-    return { ok: true, ids };
-  } catch (err) {
-    return { ok: false, reason: err?.message || "error" };
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // My Models — connection validation and rewrite with automatic fallback

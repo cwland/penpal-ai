@@ -883,9 +883,9 @@ function wirePopupEvents(text, settings) {
 // Load live-validated models for the default provider and wire the model button.
 function setupContentModelButton(settings) {
   const btn = popup.querySelector("#aw-btn-model");
-  if (!btn || typeof getLiveValidatedModels !== "function") { if (btn) btn.style.display = "none"; return; }
+  if (!btn || typeof getMyModels !== "function") { if (btn) btn.style.display = "none"; return; }
 
-  getLiveValidatedModels().then(({ models, savedModel }) => {
+  getMyModels().then(({ models, savedModel }) => {
     awValidatedModels = models;
     // Keep an already-chosen session model if it's still valid; otherwise prefer
     // the saved default (if valid), else the first valid model.
@@ -1165,17 +1165,14 @@ async function runAI(text, _settingsAtOpen) {
     // Always re-fetch settings so a key saved after open is picked up immediately.
     const settings = await getSettings();
     if (settings._readError) throw new Error("Couldn't read your settings — the extension may have been updated or reloaded. Please refresh this page (F5) and try again.");
-    if (!settings.apiKey && !settings.isCustomProvider) throw new Error("No API key set. Click ⚙ Settings to add one.");
+    if (!settings.hasModels) throw new Error("No AI model set up yet. Click ⚙ Settings to add one.");
 
-    const result = await new Promise((resolve, reject) => {
+    const reply = await new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
-        action: "callAI",
+        action: "rewrite",
         text: awSnapshotText,
-        settings: {
-          ...settings,
-          model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, currentTone) + (awShortenMode ? SHORTEN_PROMPT : "")
-        },
+        preferredModelId: sessionModel,
+        systemPrompt: buildSystemPrompt(settings, currentTone) + (awShortenMode ? SHORTEN_PROMPT : ""),
         history: (() => {
           const tone = getToneList(settings).find(x => x.id === currentTone);
           return {
@@ -1193,14 +1190,16 @@ async function runAI(text, _settingsAtOpen) {
           }
           return reject(new Error(msg));
         }
-        if (res?.success) resolve(res.result);
+        if (res?.success) resolve(res);
         else reject(new Error(res?.error || "Unknown error"));
       });
     });
+    const result = reply.result;
 
     if (!popup) return;
     lastResult = result;
     awSetTurnResult(awCurrentAiTurn, result); // renders + wires per-turn Copy/Replace
+    showFallbackNotice(awCurrentAiTurn, reply.notice);
 
   } catch (err) {
     if (!popup) return;
@@ -1350,7 +1349,7 @@ async function doReplace(newText) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const SETTINGS_KEYS = [
-  "apiKey","apiKeys","provider","model","defaultTone",
+  "apiKey","apiKeys","provider","model","aiModels","aiConnections","customModels","defaultTone",
   "customInstructions","writingStyle","language","theme","endpointOverrides","customTones","customProviders","showLangSelector","showToneSelector","stripDashes"
 ];
 
@@ -1405,7 +1404,7 @@ function resolveSettings(data) {
 
   const customProvider = (data.customProviders || []).find(p => p.id === provider);
 
-  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
+  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider, hasModels: resolveAiModels(data).length > 0 };
 }
 
 // Appended to the system prompt when the person clicks "Shorten".

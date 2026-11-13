@@ -57,7 +57,7 @@ function sortTones(tones) { return tones.slice().sort((a, b) => a.label.localeCo
 function enabledTones(settings) { return sortTones(getToneList(settings).filter(t => t.enabled !== false)); }
 
 const SETTINGS_KEYS = [
-  "apiKey", "apiKeys", "provider", "model",
+  "apiKey", "apiKeys", "provider", "model", "aiModels", "aiConnections", "customModels",
   "defaultTone", "customInstructions", "writingStyle", "language", "theme",
   "endpointOverrides", "customTones", "customProviders",
   "showLangSelector", "showToneSelector", "stripDashes"
@@ -99,7 +99,7 @@ function resolveSettings(data) {
   }
   apiKey = (typeof apiKey === "string" ? apiKey : "").trim();
   const customProvider = (data.customProviders || []).find(p => p.id === provider);
-  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
+  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider, hasModels: resolveAiModels(data).length > 0 };
 }
 
 // Appended to the system prompt when the person clicks "Shorten".
@@ -243,8 +243,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 // ── Session model picker ──
 async function setupModelButton() {
   const btn = document.getElementById("pp-model-btn");
-  if (!btn || typeof getLiveValidatedModels !== "function") return;
-  const { models, savedModel } = await getLiveValidatedModels();
+  if (!btn || typeof getMyModels !== "function") return;
+  const { models, savedModel } = await getMyModels();
 
   // Default selection follows the saved model only if it's still valid;
   // otherwise fall back to the first valid model.
@@ -268,7 +268,7 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== "sync") return;
   const settings = await getSettings();
   if (changes.theme)   applyTheme(settings.theme);
-  if (changes.apiKey || changes.apiKeys || changes.provider) refreshNoKeyBanner(settings);
+  if (changes.aiModels || changes.apiKey || changes.apiKeys || changes.provider) refreshNoKeyBanner(settings);
 });
 
 function applyTheme(theme) {
@@ -277,7 +277,7 @@ function applyTheme(theme) {
 
 function refreshNoKeyBanner(settings) {
   // Don't warn if we couldn't read storage — a read failure isn't a missing key.
-  const ok = settings._readError || settings.apiKey || settings.isCustomProvider;
+  const ok = settings._readError || settings.hasModels;
   noKeyBanner.style.display = ok ? "none" : "";
 }
 
@@ -568,19 +568,16 @@ async function runTab() {
     if (settings._readError) {
       throw new Error("Couldn't read your settings — please try again in a moment.");
     }
-    if (!settings.apiKey && !settings.isCustomProvider) {
-      throw new Error("No API key set. Click ⚙ Settings to add one.");
+    if (!settings.hasModels) {
+      throw new Error("No AI model set up yet. Click ⚙ Settings to add one.");
     }
 
-    const result = await new Promise((resolve, reject) => {
+    const reply = await new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
-        action: "callAI",
+        action: "rewrite",
         text: _snapshotText,
-        settings: {
-          ...settings,
-          model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage) + (_shortenMode ? SHORTEN_PROMPT : "")
-        },
+        preferredModelId: sessionModel,
+        systemPrompt: buildSystemPrompt(settings, selectedTone, sessionLanguage) + (_shortenMode ? SHORTEN_PROMPT : ""),
         history: historyMeta(settings, selectedTone, "tab")
       }, (res) => {
         if (chrome.runtime.lastError) {
@@ -590,13 +587,15 @@ async function runTab() {
           }
           return reject(new Error(msg));
         }
-        if (res?.success) resolve(res.result);
+        if (res?.success) resolve(res);
         else reject(new Error(res?.error || "Unknown error"));
       });
     });
+    const result = reply.result;
 
     _lastResult = result;
     setBubbleResult(_currentAiBubbleEl, result);
+    showFallbackNotice(_currentAiBubbleEl, reply.notice);
 
   } catch (err) {
     setBubbleError(_currentAiBubbleEl, err.message);

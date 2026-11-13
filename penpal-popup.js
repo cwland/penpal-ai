@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const noKeyBanner = document.getElementById("pp-no-key");
   const refreshNoKeyBanner = (s) => {
     // Don't warn if we couldn't read storage — a read failure isn't a missing key.
-    const missing = !s._readError && !s.apiKey && !s.isCustomProvider;
+    const missing = !s._readError && !s.hasModels;
     noKeyBanner.style.display = missing ? "block" : "none";
   };
   refreshNoKeyBanner(settings);
@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // (e.g. in the standalone pop-out window or after opening settings from here).
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "sync") return;
-    if ("apiKeys" in changes || "provider" in changes || "customProviders" in changes) {
+    if ("aiModels" in changes || "apiKeys" in changes || "provider" in changes || "customProviders" in changes) {
       getSettings().then(refreshNoKeyBanner);
     }
   });
@@ -520,8 +520,8 @@ function wireTurnCopy(turn, text) {
 // ── Session model picker ──
 async function setupModelButton() {
   const btn = document.getElementById("pp-model-btn");
-  if (!btn || typeof getLiveValidatedModels !== "function") return;
-  const { models, savedModel } = await getLiveValidatedModels();
+  if (!btn || typeof getMyModels !== "function") return;
+  const { models, savedModel } = await getMyModels();
   _validatedModels = models;
   // Prefer the saved default only if it survived validation; otherwise fall
   // back to the first valid model so the first run never uses an invalid one.
@@ -644,17 +644,14 @@ async function runAI() {
   try {
     const settings = await getSettings();
     if (settings._readError) throw new Error("Couldn't read your settings — please try again in a moment.");
-    if (!settings.apiKey && !settings.isCustomProvider) throw new Error("No API key set. Click ⚙ Settings to add one.");
+    if (!settings.hasModels) throw new Error("No AI model set up yet. Click ⚙ Settings to add one.");
 
-    const result = await new Promise((resolve, reject) => {
+    const reply = await new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
-        action: "callAI",
+        action: "rewrite",
         text: _snapshotText,
-        settings: {
-          ...settings,
-          model: sessionModel || settings.model,
-          systemPrompt: buildSystemPrompt(settings, selectedTone) + (_shortenMode ? SHORTEN_PROMPT : "")
-        },
+        preferredModelId: sessionModel,
+        systemPrompt: buildSystemPrompt(settings, selectedTone) + (_shortenMode ? SHORTEN_PROMPT : ""),
         history: historyMeta(settings, selectedTone, isStandalone ? "popout" : (isFullTab ? "tab" : "popup"))
       }, (res) => {
         if (chrome.runtime.lastError) {
@@ -664,13 +661,15 @@ async function runAI() {
           }
           return reject(new Error(msg));
         }
-        if (res?.success) resolve(res.result);
+        if (res?.success) resolve(res);
         else reject(new Error(res?.error || "Unknown error"));
       });
     });
+    const result = reply.result;
 
     lastResult = result;
     setTurnResult(_currentAiTurn, result);
+    showFallbackNotice(_currentAiTurn, reply.notice);
 
   } catch (err) {
     setTurnError(_currentAiTurn, err.message);
@@ -683,7 +682,7 @@ async function runAI() {
 }
 
 const SETTINGS_KEYS = [
-  "apiKey", "apiKeys", "provider", "model",
+  "apiKey", "apiKeys", "provider", "model", "aiModels", "aiConnections", "customModels",
   "defaultTone", "customInstructions", "writingStyle", "language", "theme", "endpointOverrides", "customTones", "customProviders", "showLangSelector", "showToneSelector", "stripDashes"
 ];
 
@@ -731,7 +730,7 @@ function resolveSettings(data) {
 
   const customProvider = (data.customProviders || []).find(p => p.id === provider);
 
-  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider };
+  return { ...data, provider, apiKey, apiFormat: customProvider?.apiFormat, isCustomProvider: !!customProvider, hasModels: resolveAiModels(data).length > 0 };
 }
 
 // Appended to the system prompt when the person clicks "Shorten".

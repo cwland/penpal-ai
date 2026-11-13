@@ -3,171 +3,31 @@
 // surfaces can offer a "change model for this session" control that lists only
 // models validated to work for the user's default provider.
 //
-// NOTE: keep PROVIDER_MODELS in sync with the same constant in penpal-settings.js.
 
-const PROVIDER_MODELS = {
-  openrouter: [
-    { value: "openai/gpt-4.1-mini",            label: "GPT-4.1 Mini — fast & cheap" },
-    { value: "openai/gpt-4.1-nano",            label: "GPT-4.1 Nano — fastest & cheapest" },
-    { value: "anthropic/claude-sonnet-4.6",    label: "Claude Sonnet 4.6 — best Anthropic" },
-    { value: "anthropic/claude-haiku-4.5",     label: "Claude Haiku 4.5 — fast & cheap" },
-    { value: "google/gemini-2.5-flash",        label: "Gemini 2.5 Flash — fast" },
-    { value: "google/gemini-3.5-flash",        label: "Gemini 3.5 Flash — best Google" },
-    { value: "mistralai/mistral-large-2512",   label: "Mistral Large 3 — best Mistral" },
-    { value: "mistralai/mistral-small-2603",   label: "Mistral Small 4 — lightweight" },
-    { value: "qwen/qwen3.6-flash",             label: "Qwen3.6 Flash — fast & very cheap" },
-    { value: "deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3 — best value" },
-    { value: "x-ai/grok-4.3",                  label: "Grok 4.3 — xAI flagship" },
-    { value: "meta-llama/llama-4-maverick",    label: "Llama 4 Maverick — paid" },
-    { value: "openrouter/free",                label: "Free Models Router — auto-picks best free model" },
-  ],
-  openai: [
-    { value: "gpt-4.1",      label: "GPT-4.1 — best quality" },
-    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini — fast & cheap" },
-    { value: "gpt-4.1-nano", label: "GPT-4.1 Nano — cheapest" },
-    { value: "gpt-4o",       label: "GPT-4o — still available via API" },
-    { value: "gpt-4o-mini",  label: "GPT-4o Mini — still available via API" },
-  ],
-  anthropic: [
-    { value: "claude-haiku-4-5",  label: "Claude Haiku 4.5 — fast & cheap" },
-    { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 — balanced" },
-    { value: "claude-opus-4-8",   label: "Claude Opus 4.8 — most capable" },
-  ],
-  google: [
-    { value: "gemini-2.5-flash-lite-preview-06-17", label: "Gemini 2.5 Flash Lite — cheapest" },
-    { value: "gemini-2.5-flash",                    label: "Gemini 2.5 Flash — fast" },
-    { value: "gemini-3.5-flash",                    label: "Gemini 3.5 Flash — best quality" },
-  ],
-  mistral: [
-    { value: "mistral-small-latest", label: "Mistral Small 4 — lightweight" },
-    { value: "mistral-large-latest", label: "Mistral Large 3 — best quality" },
-  ],
-  meta: [
-    { value: "meta-llama/llama-4-maverick",            label: "Llama 4 Maverick — paid" },
-    { value: "meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B — free (capacity limited)" },
-  ],
-  groq: [
-    { value: "llama-3.1-8b-instant",                      label: "Llama 3.1 8B Instant — fastest" },
-    { value: "llama-3.3-70b-versatile",                   label: "Llama 3.3 70B Versatile — best quality" },
-    { value: "meta-llama/llama-4-scout-17b-16e-instruct", label: "Llama 4 Scout" },
-    { value: "openai/gpt-oss-20b",                        label: "GPT-OSS 20B — OpenAI open-source" },
-    { value: "qwen/qwen3-32b",                            label: "Qwen3 32B" },
-  ],
-  cohere: [
-    { value: "command-r-plus", label: "Command R+ — best quality" },
-    { value: "command-r",      label: "Command R — balanced" },
-  ],
-  together: [
-    { value: "meta-llama/Meta-Llama-3.3-70B-Instruct-Turbo", label: "Llama 3.3 70B Turbo — best quality" },
-    { value: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",  label: "Llama 3.1 8B Turbo — cheapest" },
-    { value: "deepseek-ai/DeepSeek-V3",                       label: "DeepSeek V3" },
-  ],
-  fireworks: [
-    { value: "accounts/fireworks/models/llama-v3p3-70b-instruct", label: "Llama 3.3 70B — best quality" },
-    { value: "accounts/fireworks/models/llama-v3p1-8b-instruct",  label: "Llama 3.1 8B — fastest" },
-    { value: "accounts/fireworks/models/deepseek-v3",             label: "DeepSeek V3" },
-  ],
-  deepseek: [
-    { value: "deepseek-chat",     label: "DeepSeek V3 — best value" },
-    { value: "deepseek-reasoner", label: "DeepSeek R1 — reasoning" },
-  ],
-  xai: [
-    { value: "grok-4",        label: "Grok 4 — most capable" },
-    { value: "grok-4.3",      label: "Grok 4.3 — fast & reliable" },
-    { value: "grok-4.1-fast", label: "Grok 4.1 Fast — agentic tool calling" },
-  ],
-};
-
-// Resolve the session-selectable ("validated to work") models for the active
-// default provider: the shipped, verified presets minus any the user hid, plus
-// any custom models they added for that provider. Mirrors the Settings dropdown.
-// `data` is the result of chrome.storage.sync.get(["provider","model","customModels","hiddenModels"]).
-function getValidatedModels(data) {
-  const provider = (data && data.provider) || "openrouter";
-  const hidden   = new Set(((data && data.hiddenModels) || {})[provider] || []);
-  const defaults = (PROVIDER_MODELS[provider] || []).filter(m => !hidden.has(m.value));
-  const customs  = ((data && data.customModels) || {})[provider] || [];
-  // De-dupe by value (a custom entry could repeat a preset value)
-  const seen = new Set();
-  const models = [];
-  for (const m of [...defaults, ...customs]) {
-    if (m && m.value && !seen.has(m.value)) { seen.add(m.value); models.push(m); }
-  }
-  return { provider, models };
+// The session model picker lists the user's My Models entries in order (top =
+// default). Each item's value is the entry id; the background falls back down
+// the rest of the list automatically. Requires penpal-ai-config.js.
+async function getMyModels() {
+  const data = await new Promise(r => {
+    try { chrome.storage.sync.get(null, d => r(chrome.runtime.lastError ? {} : (d || {}))); }
+    catch (_) { r({}); }
+  });
+  const conns = resolveAiConnections(data);
+  const models = resolveAiModels(data).map(m => ({
+    value: m.id,
+    label: `${m.label} — ${providerDisplayName(m.provider, conns)}`
+  }));
+  return { models, savedModel: models[0] ? models[0].value : null };
 }
 
-// Does a curated preset `value` correspond to any of the provider's live IDs?
-// Lenient on purpose — providers expose date-suffixed or prefixed variants
-// (e.g. "claude-haiku-4-5-20251001", "models/gemini-2.5-flash") so we accept a
-// match when either side is a prefix of the other, or the live ID equals the
-// value with a trailing "-<date/build>" segment stripped.
-function modelValueIsLive(value, liveSet, liveList) {
-  const v = String(value || "").toLowerCase();
-  if (!v) return false;
-  if (liveSet.has(v)) return true;
-  for (const id of liveList) {
-    if (id === v) return true;
-    if (id.startsWith(v + "-") || id.startsWith(v + ":")) return true; // date/build/tag suffix
-    if (v.startsWith(id + "-") || v.startsWith(id + ":")) return true;
-    // strip a trailing date-like segment from the live id and compare
-    if (id.replace(/-\d{6,8}$/, "") === v) return true;
-  }
-  return false;
-}
-
-// Live-validated model list for the active provider. Starts from the curated
-// presets (getValidatedModels) then removes any the provider doesn't actually
-// expose for the user's key — so the picker never offers a model that errors.
-// Runs behind the scenes on each window load. Best-effort: if validation can't
-// run (no key, custom/local provider, offline, or a provider with no /models
-// endpoint), it returns the full curated list unchanged so the menu is never
-// wrongly emptied.
-async function getLiveValidatedModels() {
-  const data = await new Promise(r =>
-    chrome.storage.sync.get(
-      ["provider", "model", "customModels", "hiddenModels", "apiKeys", "apiKey", "customProviders", "endpointOverrides"],
-      d => r(d || {})
-    ));
-
-  const { provider, models } = getValidatedModels(data);
-  const savedModel = data.model || null;
-  const result = { provider, models, savedModel, validated: false };
-
-  // Resolve the active key for this provider (mirrors resolveSettings()).
-  const apiKeys = data.apiKeys || {};
-  let apiKey = apiKeys[provider];
-  if (apiKey === undefined) apiKey = (data.apiKey && (data.provider || "openrouter") === provider) ? data.apiKey : "";
-  apiKey = (typeof apiKey === "string" ? apiKey : "").trim();
-
-  const customProvider = (data.customProviders || []).find(p => p.id === provider);
-
-  // Skip validation we can't trust: custom/local providers, or no key (most
-  // cloud /models endpoints require auth). Keep the curated list as-is.
-  if (customProvider || !apiKey || !models.length) return result;
-
-  let res;
-  try {
-    res = await new Promise(resolve => {
-      chrome.runtime.sendMessage(
-        { action: "listModels", provider, apiKey, endpointOverrides: data.endpointOverrides, apiFormat: customProvider?.apiFormat },
-        (r) => { if (chrome.runtime.lastError) resolve({ ok: false }); else resolve(r || { ok: false }); }
-      );
-    });
-  } catch (_) {
-    res = { ok: false };
-  }
-
-  if (!res || !res.ok || !Array.isArray(res.ids) || !res.ids.length) return result; // fallback: curated
-
-  const liveList = res.ids;
-  const liveSet = new Set(liveList);
-  const filtered = models.filter(m => modelValueIsLive(m.value, liveSet, liveList));
-
-  // Safeguard: if matching nuked everything (e.g. an unexpected ID format),
-  // fall back to the curated list rather than show an empty menu.
-  if (!filtered.length) return result;
-
-  return { provider, models: filtered, savedModel, validated: true };
+// Small muted line under a reply when a backup model answered.
+function showFallbackNotice(turnEl, notice) {
+  if (!turnEl || !notice) return;
+  const el = document.createElement("div");
+  el.className = "penpal-fallback-notice";
+  el.textContent = "↪ " + notice;
+  el.style.cssText = "margin-top:6px;font-size:11px;line-height:1.4;opacity:.7;";
+  turnEl.appendChild(el);
 }
 
 // Short, button-friendly label: drop the " — descriptor" suffix.
