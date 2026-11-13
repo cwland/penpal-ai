@@ -22,7 +22,19 @@ function makeChromeStub(calls, overrides = {}) {
   return make(["chrome"]);
 }
 
-function loadBackground({ fetchImpl, chromeOverrides } = {}) {
+const ROOT = path.join(__dirname, "..", "..");
+
+// Load one or more of the extension's plain scripts (e.g. penpal-ai-config.js)
+// into a fresh VM context, as a page would with <script> tags.
+function loadScripts(files, globals = {}) {
+  const context = vm.createContext({ console, URL, ...globals });
+  for (const f of files) {
+    vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), context, { filename: f });
+  }
+  return context;
+}
+
+function loadBackground({ fetchImpl, chromeOverrides, extraGlobals = {} } = {}) {
   const chromeCalls = [];
   const fetchCalls = [];
   const fetch = async (url, init = {}) => {
@@ -36,9 +48,15 @@ function loadBackground({ fetchImpl, chromeOverrides } = {}) {
     console,
     setTimeout,
     clearTimeout,
-    URL
+    URL,
+    AbortController,
+    ...extraGlobals
   });
-  const src = fs.readFileSync(path.join(__dirname, "..", "..", "background.js"), "utf8");
+  // Service-worker importScripts: run each file in the same context.
+  context.importScripts = (...files) => {
+    for (const f of files) vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), context, { filename: f });
+  };
+  const src = fs.readFileSync(path.join(ROOT, "background.js"), "utf8");
   vm.runInContext(src, context, { filename: "background.js" });
   return { bg: context, chromeCalls, fetchCalls };
 }
@@ -49,4 +67,7 @@ function jsonResponse(obj, status = 200) {
   return { ok: status >= 200 && status < 300, status, text: async () => text, json: async () => obj };
 }
 
-module.exports = { loadBackground, jsonResponse };
+// Copy a VM-context value into host objects/arrays so deepEqual compares values, not prototypes.
+const plain = (v) => JSON.parse(JSON.stringify(v));
+
+module.exports = { loadBackground, loadScripts, jsonResponse, plain };
