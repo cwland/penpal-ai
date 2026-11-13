@@ -51,7 +51,9 @@ The privacy practices of the AI provider you choose apply to that data. Please r
 - [DeepSeek](https://www.deepseek.com/privacy_policy)
 - [xAI](https://x.ai/privacy-policy)
 
-If you use a local model (e.g. Ollama, LM Studio), requests are sent only to your own machine and no data leaves your device at all.
+If you use a local model (e.g. Apple Foundation Models, Ollama, LM Studio), requests are sent only to your own machine and no data leaves your device at all.
+
+If you add more than one model under **My Models**, PenPal sends your text to the first model in your list. Only if that model fails to respond does it send the same text to the next model you added, and so on. Your text only ever goes to providers you chose to add.
 
 ---
 

@@ -15,6 +15,8 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
 - **Multi-provider AI support** — Bring your own API key from any of the following providers:
   - OpenRouter, OpenAI, Anthropic, Google Gemini, Mistral, Meta (via OpenRouter), Groq, Cohere, Together AI, Fireworks AI, DeepSeek, xAI
 - **Local / self-hosted LLM support** — Quick-fill templates for Ollama, LM Studio, llama.cpp, vLLM, and other OpenAI-compatible local servers. Also works with Apple's on-device model via Apple Foundation Models Serve on macOS. No API key required for local setups.
+- **My Models with automatic backups** — Set up several models from any mix of providers, drag them into order, and PenPal uses the top one, falling back to the next if a model doesn't respond.
+- **Live model lists** — After validating your key (or local server), pick from the models your provider actually offers, with suggested models for writing marked at the top.
 - **Custom providers** — Add any OpenAI-compatible or Anthropic-compatible endpoint with a custom name, icon, and API format.
 - **Toolbar control menu** — Clicking the toolbar icon opens a compact launcher (not a chat window) with **Settings**, **Pop-Out**, **Full Screen**, and **Side Panel**. Every option opens the same PenPal interface, so your tools are identical wherever you launch it.
 - **Resizable side panel** — A slide-out panel that docks to the right of the page and reflows the page beside it. Drag its left edge to resize; the width is remembered on every page and across sessions, and it reopens automatically as you move between pages within a session. Toggle it from the menu, the floating edge launcher, or `Ctrl/⌘+Shift+P`.
@@ -42,28 +44,38 @@ PenPal AI is a Manifest V3 Chrome extension loaded unpacked during development.
 4. Click **Load unpacked** and select the `penpal-ai/` folder.
 5. The PenPal AI icon will appear in your Chrome toolbar.
 
-On first install, the Settings page opens automatically so you can add your API key.
+On first install, the Settings page opens automatically so you can add your first model.
 
 ---
 
 ## Setup
 
 1. Click the PenPal AI toolbar icon and then the **⚙ Settings** button, or right-click the extension icon and choose **Options**.
-2. Select your **AI provider** and enter your **API key**.
-3. Choose a default **model** and **tone**.
-4. Optionally add **writing style notes** or a fully custom system prompt.
-5. Save — you're ready to go.
+2. Go to **AI Models & Settings → My Models** and click **+ Add model**.
+3. **Choose a provider**: one of the built-ins, or **Local / custom server**. Suggested models for each built-in provider are shown right away.
+4. **Connect**: paste your API key (or, for a local server, its endpoint) and click **Validate**. PenPal checks the key and loads the provider's live model list.
+5. **Pick a model** from the list (suggested models are marked ★ at the top; type to search), click **Test model**, and once it passes, **Save model**.
+6. Optionally set your default **tone**, **language**, and **writing style** on the other tabs.
+
+### My Models: default and backups
+
+You can add as many models as you like, from any mix of providers. **The top model is your default.** If it doesn't respond (it can't be reached, takes longer than 30 seconds, returns an error, or rejects its key), PenPal automatically tries the next model in the list, and so on. When a backup answers, a small line under the result says so, e.g. *"Answered by Qwen3.6 Flash — Claude Sonnet 4.6 didn't respond (timeout)."*
+
+- **Reorder** by dragging ⠿ or with the ↑ ↓ buttons.
+- **Switch for one session** from the model button in the popup, side panel, or full-screen tab. That model goes first; the rest of your list still backs it up.
+- **Test**, **edit** (✎), or **remove** (🗑) any model from its row. Removing the last model for a provider also removes its saved key.
+- Updating from 1.4 or earlier converts your existing setup automatically: your current provider and model become #1, and saved custom providers become entries below it.
 
 ### Using a local model (Ollama, LM Studio, etc.)
 
-1. In Settings, go to the **Custom Providers** tab.
-2. Click a quick-fill template (Ollama, LM Studio, llama.cpp, vLLM, or Jan) or fill in the endpoint manually.
-3. No API key is needed for most local setups.
-4. Make sure your local server is running before using the extension.
+1. In **My Models**, click **+ Add model** and choose **Local / custom server**.
+2. Click a quick-fill (Apple Foundation Models, Ollama, LM Studio, Open WebUI, LocalAI, vLLM, Text Gen WebUI) or enter the name and endpoint yourself.
+3. No API key is needed for most local setups. Click **Validate**, and allow access to the address when Chrome asks.
+4. Pick one of the models the server reports, test it, and save. Make sure your local server is running first.
 
 #### Apple Foundation Models (macOS)
 
-PenPal can use Apple's on-device model through **Apple Foundation Models Serve**, which runs an OpenAI-compatible server on your Mac.
+PenPal can use Apple's on-device model through **Apple Foundation Models Serve**, which runs an OpenAI-compatible server on your Mac. Use the **Apple Foundation Models** quick-fill, or enter:
 
 | Field | Value |
 |---|---|
@@ -148,11 +160,13 @@ penpal-ai/
 ├── penpal-popup.js        # Popup/pop-out logic — tone/language selection, rewrite flow, settings access
 ├── penpal-tab.html        # Full screen tab — two-column layout (reuses penpal-popup.js)
 ├── penpal-tab.js          # Full screen tab logic
-├── penpal-models.js       # Shared model presets, live model validation, model picker, update toast
+├── penpal-models.js       # Session model picker (from My Models), fallback notice, update toast
 ├── penpal-content.js      # Content script — inline panel, side panel, text selection, page injection
 ├── penpal-content.css     # Styles for the inline/side panel
 ├── penpal-settings.html   # Settings page HTML
-├── penpal-settings.js     # Settings page logic — providers, models, tones, language, style
+├── penpal-ai-config.js    # Shared My Models logic — data model, migration, model lists, fallback helpers
+├── penpal-settings.js     # Settings page logic — tones, language, style, appearance, history
+├── penpal-settings-models.js # Settings → My Models list and the Add model flow
 ├── package.json           # Dev-only: `npm test` script (not used by the extension)
 ├── test/                  # Dev-only: Node built-in test runner tests for background.js and the manifest
 └── icons/

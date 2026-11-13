@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
-  "notes": "Works with local servers that block browser requests, such as Apple Foundation Models Serve on macOS. PenPal now removes the browser-added Origin and Sec-Fetch-Site headers on its own requests to localhost/127.0.0.1, and always asks for a non-streamed reply. Adds the declarativeNetRequestWithHostAccess permission.",
+  "version": "1.5.0",
+  "notes": "AI setup is now one simple list: My Models. Add a model by picking a provider, validating your key, choosing from the provider's live model list (with suggestions), and testing it. Add several and drag them into order: the top one is your default, and PenPal automatically falls back to the next if one doesn't respond. Your existing setup is converted automatically.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }
