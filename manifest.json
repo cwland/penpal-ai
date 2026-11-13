@@ -9,7 +9,8 @@
     "contextMenus",
     "scripting",
     "clipboardWrite",
-    "alarms"
+    "alarms",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://raw.githubusercontent.com/*",

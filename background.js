@@ -101,6 +101,44 @@ const PROVIDER_ENDPOINTS = {
   xai:        "https://api.x.ai/v1/chat/completions"
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Local-server header fix
+// ═══════════════════════════════════════════════════════════════════════════
+// Some local LLM servers (e.g. Apple Foundation Models Serve) reject any
+// request carrying an Origin header or Sec-Fetch-Site: cross-site with
+// 403 "Cross-site requests are not allowed". Chrome adds both to extension
+// fetches, so strip them — only on PenPal's own requests to loopback hosts.
+// Each header gets its own rule so that if Chrome refuses one, the other
+// still installs. Requires host access to the endpoint, which Settings
+// already requests for custom providers.
+const LOCAL_HEADER_RULES = [
+  { id: 9001, header: "origin" },
+  { id: 9002, header: "sec-fetch-site" }
+];
+
+async function installLocalHeaderRules() {
+  for (const { id, header } of LOCAL_HEADER_RULES) {
+    try {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [id],
+        addRules: [{
+          id,
+          priority: 1,
+          action: { type: "modifyHeaders", requestHeaders: [{ header, operation: "remove" }] },
+          condition: {
+            initiatorDomains: [chrome.runtime.id],
+            requestDomains: ["localhost", "127.0.0.1"],
+            resourceTypes: ["xmlhttprequest"]
+          }
+        }]
+      });
+    } catch (err) {
+      console.warn(`PenPal: couldn't install header rule for "${header}":`, err?.message || err);
+    }
+  }
+}
+installLocalHeaderRules();
+
 // Allow content scripts (untrusted context) to read/write session storage so
 // the docked side panel can persist its conversation state across page reloads.
 try {
@@ -547,7 +585,10 @@ async function callAIAPI(text, settings, { debug = false } = {}) {
         { role: "user", content: safeUserContent }
       ],
       temperature: 0.4,
-      max_tokens: 2000
+      max_tokens: 2000,
+      // Explicit, because some local servers (e.g. Apple Foundation Models
+      // Serve) stream SSE by default, which we can't JSON.parse.
+      stream: false
     };
   }
 
