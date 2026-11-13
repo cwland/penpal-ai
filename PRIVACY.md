@@ -1,6 +1,6 @@
 # Privacy Policy — PenPal AI Writing Assistant
 
-_Last updated: October 5, 2026_
+_Last updated: November 13, 2026_
 
 ---
 
@@ -77,6 +77,7 @@ PenPal AI does not:
 | `contextMenus` | Add the "Rewrite with PenPal AI" option to the right-click menu |
 | `scripting` | Inject the inline assistant panel into pages when triggered |
 | `clipboardWrite` | Copy AI-generated results to your clipboard |
+| `declarativeNetRequestWithHostAccess` | Remove two browser-added headers (`Origin`, `Sec-Fetch-Site`) from PenPal's own requests to a local model server on your machine (`localhost` / `127.0.0.1`). It does not read, log, or block any of your browsing, and does not affect other websites or extensions. |
 | Host permissions (AI provider URLs) | Send rewrite requests directly to your configured AI provider |
 | Optional host permissions (`http://`, `https://`) | Enable the inline rewriting panel on all websites |
 

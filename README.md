@@ -14,7 +14,7 @@ PenPal AI is a Chrome extension that brings AI-powered writing assistance direct
 - **Multi-language output** — Switch the output language per session from 18 supported languages including English (US/UK), Spanish, French, German, Japanese, Chinese, Arabic, and more.
 - **Multi-provider AI support** — Bring your own API key from any of the following providers:
   - OpenRouter, OpenAI, Anthropic, Google Gemini, Mistral, Meta (via OpenRouter), Groq, Cohere, Together AI, Fireworks AI, DeepSeek, xAI
-- **Local / self-hosted LLM support** — Quick-fill templates for Ollama, LM Studio, llama.cpp, vLLM, and other OpenAI-compatible local servers. No API key required for local setups.
+- **Local / self-hosted LLM support** — Quick-fill templates for Ollama, LM Studio, llama.cpp, vLLM, and other OpenAI-compatible local servers. Also works with Apple's on-device model via Apple Foundation Models Serve on macOS. No API key required for local setups.
 - **Custom providers** — Add any OpenAI-compatible or Anthropic-compatible endpoint with a custom name, icon, and API format.
 - **Toolbar control menu** — Clicking the toolbar icon opens a compact launcher (not a chat window) with **Settings**, **Pop-Out**, **Full Screen**, and **Side Panel**. Every option opens the same PenPal interface, so your tools are identical wherever you launch it.
 - **Resizable side panel** — A slide-out panel that docks to the right of the page and reflows the page beside it. Drag its left edge to resize; the width is remembered on every page and across sessions, and it reopens automatically as you move between pages within a session. Toggle it from the menu, the floating edge launcher, or `Ctrl/⌘+Shift+P`.
@@ -60,6 +60,28 @@ On first install, the Settings page opens automatically so you can add your API 
 2. Click a quick-fill template (Ollama, LM Studio, llama.cpp, vLLM, or Jan) or fill in the endpoint manually.
 3. No API key is needed for most local setups.
 4. Make sure your local server is running before using the extension.
+
+#### Apple Foundation Models (macOS)
+
+PenPal can use Apple's on-device model through **Apple Foundation Models Serve**, which runs an OpenAI-compatible server on your Mac.
+
+| Field | Value |
+|---|---|
+| Endpoint | `http://127.0.0.1:1976/v1/chat/completions` |
+| Model | `system` |
+| API format | OpenAI-compatible |
+| API key | Leave blank |
+
+Notes:
+- This server rejects requests that look like they came from a web page (`403 Cross-site requests are not allowed`). PenPal handles this automatically by removing the browser-added `Origin` and `Sec-Fetch-Site` headers from its own requests to `localhost` / `127.0.0.1`. Nothing else is affected.
+- PenPal always asks for a non-streamed reply (`"stream": false`), which this server needs because it streams by default.
+- The on-device model is small, with a short context window. It's well suited to grammar fixes and short rewrites; very long selections may fail or be cut off.
+
+#### Troubleshooting local servers
+
+- **`403` / "Cross-site requests are not allowed"** — Make sure you're running v1.4.0 or later and reloaded the extension after updating. In the service worker console (`chrome://extensions` → PenPal → *service worker*), `await chrome.declarativeNetRequest.getDynamicRules()` should list two rules (IDs 9001 and 9002).
+- **"The server's response wasn't valid JSON"** — The server is streaming. v1.4.0+ sends `"stream": false`; check the request body in the Debug Bubble.
+- **Ollama returns 403** — Ollama checks the origin itself. Run `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"` and restart the Ollama app.
 
 ---
 
@@ -131,6 +153,8 @@ penpal-ai/
 ├── penpal-content.css     # Styles for the inline/side panel
 ├── penpal-settings.html   # Settings page HTML
 ├── penpal-settings.js     # Settings page logic — providers, models, tones, language, style
+├── package.json           # Dev-only: `npm test` script (not used by the extension)
+├── test/                  # Dev-only: Node built-in test runner tests for background.js and the manifest
 └── icons/
     ├── icon16.png
     ├── icon48.png
@@ -170,6 +194,7 @@ penpal-ai/
 | `scripting` | Inject the content script on demand |
 | `clipboardWrite` | Copy AI results to the clipboard |
 | `alarms` | Schedule the daily side-loaded update check |
+| `declarativeNetRequestWithHostAccess` | Remove the browser-added `Origin` and `Sec-Fetch-Site` headers from PenPal's own requests to `localhost` / `127.0.0.1`, so local servers that block browser requests (e.g. Apple Foundation Models Serve) accept them. Only applies where you've granted host access; never touches other sites or extensions. |
 | Host permissions (AI APIs) | Make direct API calls to the configured AI provider |
 | Host permission (`raw.githubusercontent.com`) | Fetch `version.json` for the side-loaded update check |
 | Optional host permissions (`http://*/*`, `https://*/*`) | Support inline rewriting on all websites |
@@ -182,8 +207,10 @@ API keys are stored locally in Chrome's extension storage and are never sent any
 
 1. Fork the repository and create a feature branch.
 2. Make your changes — the extension can be reloaded from `chrome://extensions` by clicking the refresh icon on the extension card.
-3. Test across a few different text field types (plain `<input>`, `<textarea>`, and `contenteditable` elements behave differently).
-4. Open a pull request with a clear description of what changed and why.
+3. Run the automated tests with `npm test` (requires Node 20+; no packages to install). They load `background.js` with a stubbed `chrome` API, so no browser is needed.
+4. Test across a few different text field types (plain `<input>`, `<textarea>`, and `contenteditable` elements behave differently).
+5. When bumping the version, update both `manifest.json` and `version.json` — a test checks they match.
+6. Open a pull request with a clear description of what changed and why.
 
 ---
 

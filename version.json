@@ -1,5 +1,5 @@
 {
-  "version": "1.3.4",
-  "notes": "The History window header now shows how many rewrites are saved out of your limit (e.g. \"100 of 250 saved rewrites\"). Also: changing the output language re-does your latest reply in the new language in every view, like full screen.",
+  "version": "1.4.0",
+  "notes": "Works with local servers that block browser requests, such as Apple Foundation Models Serve on macOS. PenPal now removes the browser-added Origin and Sec-Fetch-Site headers on its own requests to localhost/127.0.0.1, and always asks for a non-streamed reply. Adds the declarativeNetRequestWithHostAccess permission.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }
