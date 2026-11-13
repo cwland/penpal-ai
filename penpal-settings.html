@@ -1391,6 +1391,35 @@
       font-size: 11px;
       padding: 1px 6px;
     }
+
+    /* ── My Models ─────────────────────────────────────────────────────── */
+    .mm-list { display: flex; flex-direction: column; gap: 6px; }
+    .mm-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-opt); border-radius: 10px; background: var(--bg-opt); }
+    .mm-row.dragging { opacity: 0.4; }
+    .mm-row.drop-target { border-color: #5c6ef5; }
+    .mm-handle { cursor: grab; color: var(--text-muted); font-size: 16px; user-select: none; }
+    .mm-pos { width: 18px; color: var(--text-muted); font-size: 12px; text-align: right; }
+    .mm-icon { width: 22px; text-align: center; }
+    .mm-name { flex: 1; min-width: 0; font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mm-name .mm-provider { color: var(--text-muted); }
+    .mm-tag { font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border-opt); color: var(--text-muted); }
+    .mm-tag.default { border-color: #5c6ef5; color: #a5b4fc; background: rgba(92,110,245,0.1); }
+    .mm-row-btn { background: none; border: 1px solid transparent; color: var(--text-muted); border-radius: 6px; padding: 3px 7px; cursor: pointer; font-size: 12px; }
+    .mm-row-btn:hover:not(:disabled) { border-color: #5c6ef5; color: var(--text-primary); }
+    .mm-row-btn:disabled { opacity: .3; cursor: default; }
+    .mm-row-btn.confirm { border-color: #f87171; color: #fca5a5; }
+    .mm-empty { font-size: 12px; color: var(--text-muted); line-height: 1.6; padding: 12px; border: 1px dashed var(--border-opt); border-radius: 10px; }
+    .mm-list-actions { margin-top: 12px; }
+    .mm-step { padding: 12px 0; border-top: 1px solid var(--border-card); transition: opacity .15s; }
+    .mm-step:first-of-type { border-top: none; padding-top: 0; }
+    .mm-step.locked { opacity: 0.4; pointer-events: none; }
+    .mm-step-head { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .mm-step-num { width: 20px; height: 20px; border-radius: 50%; background: rgba(92,110,245,0.15); color: #a5b4fc; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+    .mm-step.done .mm-step-num { background: rgba(52,211,153,0.15); color: #6ee7b7; }
+    .mm-provider-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .mm-model-select { width: 100%; margin-top: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+    .mm-actions { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border-card); flex-wrap: wrap; }
+    .add-model-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
   </style>
 </head>
 <body>
@@ -1642,185 +1671,91 @@
 <div class="tab-panel" id="tab-api">
 
   <div class="subtab-bar" data-group="api">
-    <button class="subtab-btn active" data-group="api" data-subtab="defaults">⭐ Defaults</button>
-    <button class="subtab-btn" data-group="api" data-subtab="manage">⚙ Manage Default Providers</button>
-    <button class="subtab-btn" data-group="api" data-subtab="custom">🖥️ Custom Providers</button>
+    <button class="subtab-btn active" data-group="api" data-subtab="models">🤖 My Models</button>
     <button class="subtab-btn" data-group="api" data-subtab="history">🕘 History</button>
   </div>
 
-  <!-- ─── Sub-tab: Defaults ─── -->
-  <div class="subtab-panel active" data-group="api" data-subtab="defaults">
+  <!-- ─── Sub-tab: My Models ─── -->
+  <div class="subtab-panel active" data-group="api" data-subtab="models">
 
     <div class="card">
-      <div class="card-title">AI Provider</div>
-      <div class="provider-ecosystem-bubble">
-        <div id="provider-selector"></div>
-        <div class="provider-info visible" id="provider-info"></div>
-        <div class="model-rec" id="model-rec"></div>
+      <div class="card-title">My Models</div>
+      <div class="hint" style="margin-top:0;margin-bottom:12px">
+        The <strong>top model is your default</strong>. If it doesn't respond, PenPal automatically tries the next one, and tells you which model answered. Drag <span class="kbd">⠿</span> (or use ↑ ↓) to change the order.
+      </div>
+      <div class="mm-list" id="mm-list"></div>
+      <div class="mm-empty" id="mm-empty" style="display:none">
+        No models yet. Click <strong>+ Add model</strong> to connect an AI provider or a local model on your computer.
+        <br>💡 <strong>New to this?</strong> Start with <strong>OpenRouter</strong>: one key, many models, free tiers available.
+      </div>
+      <div class="test-result" id="mm-list-msg" style="display:none"></div>
+      <div class="mm-list-actions">
+        <button class="add-model-btn" id="mm-add-btn">+ Add model</button>
+      </div>
+    </div>
+
+    <div class="card mm-add-card" id="mm-add-card" style="display:none">
+      <div class="card-title" id="mm-add-title">Add a model</div>
+
+      <div class="mm-step" id="mm-step-1">
+        <div class="mm-step-head"><span class="mm-step-num">1</span> Choose a provider</div>
+        <div class="mm-provider-pills" id="mm-provider-pills"></div>
+        <div class="provider-info" id="mm-provider-info"></div>
+        <div class="model-rec" id="mm-recs"></div>
       </div>
 
-      <div class="api-config-bubble">
-
-        <div class="field">
-          <label>MODEL</label>
-          <select id="model-select"></select>
-          <div class="hint">
-            💡 <strong>New to this?</strong> Start with <strong>OpenRouter</strong> — one key, access to many models, free tiers available. <a href="https://openrouter.ai" target="_blank">openrouter.ai →</a>
+      <div class="mm-step locked" id="mm-step-2">
+        <div class="mm-step-head"><span class="mm-step-num">2</span> Connect</div>
+        <div id="mm-custom-fields" style="display:none">
+          <div class="field">
+            <label>QUICK FILL</label>
+            <div class="template-row" id="mm-templates"></div>
           </div>
-          <div class="hint">
-            Don't see a model you know exists? Add one to a built-in provider on <strong>⚙ Manage Default Providers</strong>, or set up your own server under <strong>🖥️ Custom Providers</strong>.
+          <div class="field">
+            <label>NAME</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button type="button" class="emoji-pick-btn" id="mm-icon-btn" data-emoji="🤖" title="Choose an icon">🤖</button>
+              <input type="text" id="mm-name" placeholder="e.g. Apple (local), Office Ollama" style="flex:1">
+            </div>
+          </div>
+          <div class="field">
+            <label>ENDPOINT URL</label>
+            <input type="text" id="mm-endpoint" placeholder="http://localhost:11434/v1/chat/completions">
+          </div>
+          <div class="field">
+            <label>API FORMAT</label>
+            <select id="mm-format">
+              <option value="openai">OpenAI-compatible (Ollama, LM Studio, Apple, vLLM, llama.cpp…)</option>
+              <option value="anthropic">Anthropic-compatible</option>
+            </select>
           </div>
         </div>
-
         <div class="field">
-          <label>API KEY <span style="font-weight:400;color:var(--text-muted)">— for <span class="active-provider-label">OpenRouter</span></span></label>
+          <label id="mm-key-label">API KEY</label>
           <div class="key-row">
-            <input type="text" id="api-key" placeholder="Paste your API key here…">
-            <button class="reveal-btn" id="reveal-btn" title="Hide API key"></button>
-            <button class="test-btn" id="test-btn">Test Connection</button>
+            <input type="password" id="mm-key" placeholder="Paste your API key here…" autocomplete="off">
+            <button class="test-btn" id="mm-validate-btn">Validate</button>
           </div>
-          <div class="hint">Stored locally in Chrome only — never sent anywhere except the selected provider's API. Each provider keeps its own key, so switching providers above won't overwrite this.</div>
-          <div class="test-result" id="test-result" style="display:none"></div>
+          <div class="hint" id="mm-key-hint">Stored locally in Chrome only and sent only to this provider.</div>
         </div>
-
+        <div class="test-result" id="mm-validate-result" style="display:none"></div>
       </div>
-    </div>
 
-  </div>
-
-  <!-- ─── Sub-tab: Manage Default Providers ─── -->
-  <div class="subtab-panel" data-group="api" data-subtab="manage">
-
-    <div class="card">
-      <div class="card-title">Manage Default Providers</div>
-      <div class="tips-box">
-        <strong>Why this exists:</strong> AI providers release new models constantly, and the curated list on the <strong>Defaults</strong> tab can't keep up the moment something new launches. If a built-in provider has a model that isn't listed yet, add its <strong>model ID</strong> here and it'll immediately show up in the Model dropdown on the Defaults tab.
-        <br><br>
-        Model IDs must match the provider's API exactly (for example OpenRouter uses IDs like <span class="kbd">anthropic/claude-opus-5</span>, while OpenAI uses IDs like <span class="kbd">gpt-5</span>). Check the provider's docs or model catalog page for the exact string — even small typos will cause API errors. Use <strong>Test Connection</strong> on the Defaults tab to confirm it works.
-        <br><br>
-        You can also hide built-in defaults you don't use, and override a provider's API endpoint URL if it ever changes. This tab covers the <strong>built-in</strong> providers only — to add an entirely new provider (e.g. a local server), use <strong>🖥️ Custom Providers</strong>.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Provider</div>
-      <div class="field" style="margin-bottom:0">
-        <label>MANAGE MODELS &amp; ENDPOINT FOR</label>
-        <select id="custom-provider-select"></select>
-        <div class="hint">Pick any built-in provider to manage its custom models, hidden defaults, and API endpoint — this selection is separate from the provider you're actively using on the Defaults tab.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">API Endpoint — <span class="custom-provider-label">OpenRouter</span></div>
-      <div class="field">
-        <label>ENDPOINT URL</label>
-        <input type="text" id="custom-endpoint-input" placeholder="https://...">
-        <div class="hint">Default: <span id="custom-endpoint-default" style="font-family:'SF Mono','Fira Code',monospace"></span></div>
-      </div>
-      <div class="btn-row">
-        <button class="add-model-btn" id="custom-endpoint-save-btn">Save Endpoint</button>
-        <button class="btn-secondary" id="custom-endpoint-reset-btn">↺ Reset to Default</button>
-      </div>
-      <div class="test-result" id="custom-endpoint-msg" style="display:none"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Add a Model — <span class="custom-provider-label">OpenRouter</span></div>
-      <div class="add-model-row">
-        <div class="field" style="margin-bottom:0">
-          <label>MODEL ID</label>
-          <input type="text" id="custom-model-id" placeholder="e.g. anthropic/claude-opus-5">
+      <div class="mm-step locked" id="mm-step-3">
+        <div class="mm-step-head"><span class="mm-step-num">3</span> Pick a model</div>
+        <input type="text" id="mm-model-search" placeholder="Search models…" autocomplete="off">
+        <select id="mm-model-select" size="8" class="mm-model-select"></select>
+        <div id="mm-manual-wrap" style="display:none">
+          <input type="text" id="mm-model-manual" placeholder="Exact model ID, e.g. llama3.1">
         </div>
-        <div class="field" style="margin-bottom:0">
-          <label>DISPLAY NAME <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
-          <input type="text" id="custom-model-label" placeholder="e.g. Claude Opus 5 — latest flagship">
-        </div>
-      </div>
-      <div class="hint" id="custom-provider-doc-hint"></div>
-      <button class="add-model-btn" id="custom-model-add-btn">+ Add Model</button>
-      <div class="test-result" id="custom-model-msg" style="display:none"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Your Custom Models — <span class="custom-provider-label">OpenRouter</span></div>
-      <div class="custom-model-list" id="custom-model-list"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Built-in Defaults — <span class="custom-provider-label">OpenRouter</span></div>
-      <div class="hint" style="margin-bottom:10px">Untick a model to hide it from the dropdown on the Defaults tab.</div>
-      <div class="default-model-list" id="default-model-list"></div>
-    </div>
-
-  </div>
-
-  <!-- ─── Sub-tab: Custom Providers ─── -->
-  <div class="subtab-panel" data-group="api" data-subtab="custom">
-
-    <div class="card">
-      <div class="card-title">Custom AI Providers</div>
-      <div class="tips-box">
-        Add your own AI backend — a local model server on this computer or your home network (Ollama, LM Studio, vLLM, LocalAI, Open WebUI, text-generation-webui, llama.cpp, etc.), or any other OpenAI- or Anthropic-compatible endpoint. Once added, it shows up as a provider you can select on the <strong>Defaults</strong> tab, with its own icon, API key, and model list.
-        <br><br>
-        Local servers on <span class="kbd">http://localhost</span> or your LAN are fine — Chrome will ask you to confirm access to that address the first time. Many local servers don't need an API key at all — leave it blank.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Quick Templates</div>
-      <div class="hint" style="margin-bottom:10px">Pre-fill the form below with common settings for these local servers — you can still adjust anything before adding.</div>
-      <div class="template-row" id="provider-template-row"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title" id="provider-form-title">Add a Custom Provider</div>
-
-      <div class="field">
-        <label>PROVIDER NAME <span style="font-weight:400;color:var(--text-muted)">(required)</span></label>
-        <div style="display:flex; gap:8px;">
-          <button type="button" class="emoji-pick-btn" id="new-provider-icon-btn" data-emoji="🤖" title="Choose an icon">🤖</button>
-          <input type="text" id="new-provider-name" placeholder="e.g. My Homelab, Office Ollama" style="flex:1">
-        </div>
+        <div class="hint" id="mm-model-hint"></div>
       </div>
 
-      <div class="field">
-        <label>API ENDPOINT URL <span style="font-weight:400;color:var(--text-muted)">(required)</span></label>
-        <input type="text" id="new-provider-endpoint" placeholder="http://localhost:11434/v1/chat/completions">
-        <div class="hint">Examples: <span class="kbd">http://localhost:11434/v1/chat/completions</span> (Ollama), <span class="kbd">http://localhost:1234/v1/chat/completions</span> (LM Studio), or any cloud-hosted URL.</div>
-      </div>
-
-      <div class="field">
-        <label>API FORMAT</label>
-        <select id="new-provider-format">
-          <option value="openai">OpenAI-compatible (chat/completions) — Ollama, LM Studio, vLLM, LocalAI, llama.cpp, etc.</option>
-          <option value="anthropic">Anthropic-compatible (/v1/messages)</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>API KEY <span style="font-weight:400;color:var(--text-muted)">(optional — many local servers don't require one)</span></label>
-        <input type="text" id="new-provider-key" placeholder="Leave blank if your server doesn't need one">
-      </div>
-
-      <div class="field">
-        <label>MODEL NAME(S) <span style="font-weight:400;color:var(--text-muted)">(optional — exact model IDs your server has installed)</span></label>
-        <div class="model-name-row">
-          <input type="text" id="new-provider-model-input" placeholder="e.g. llama3.1">
-          <button type="button" class="btn-secondary" id="new-provider-model-add">+ Add</button>
-        </div>
-        <div class="model-name-chips" id="new-provider-model-chips"></div>
-        <div class="model-examples" id="new-provider-model-examples" style="display:none"></div>
-      </div>
-
-      <div class="field">
-        <label>NOTES / DESCRIPTION <span style="font-weight:400;color:var(--text-muted)">(optional — shown when this provider is selected)</span></label>
-        <textarea id="new-provider-description" placeholder="e.g. Ollama running on my desktop, GPU-accelerated. Models pulled: llama3.1, qwen2.5."></textarea>
-      </div>
-
-      <div class="test-result" id="provider-test-result" style="display:none"></div>
-
-      <div class="debug-bubble" id="provider-debug-bubble" style="display:none">
+      <div class="mm-step locked" id="mm-step-4">
+        <div class="mm-step-head"><span class="mm-step-num">4</span> Test it</div>
+        <button class="test-btn" id="mm-test-btn">Test model</button>
+        <div class="test-result" id="mm-test-result" style="display:none"></div>
+        <div class="debug-bubble" id="provider-debug-bubble" style="display:none">
         <button type="button" class="debug-bubble-toggle" id="provider-debug-toggle">
           <span class="debug-bubble-caret" id="provider-debug-caret">▸</span>
           🐛 Debug details
@@ -1840,18 +1775,13 @@
           </div>
         </div>
       </div>
-
-      <div class="btn-row">
-        <button class="btn-secondary" id="test-provider-btn">Test Connection</button>
-        <button class="add-model-btn" id="add-provider-btn">+ Add Provider</button>
-        <button class="btn-secondary" id="cancel-provider-edit-btn" style="display:none">Cancel</button>
       </div>
-      <div class="test-result" id="provider-msg" style="display:none"></div>
-    </div>
 
-    <div class="card">
-      <div class="card-title">Your Custom Providers</div>
-      <div id="custom-provider-list"></div>
+      <div class="mm-actions">
+        <button class="add-model-btn" id="mm-save-btn" disabled>Save model</button>
+        <button class="btn-secondary" id="mm-cancel-btn">Cancel</button>
+        <span class="hint" id="mm-save-hint" style="margin:0">Validate, pick a model, and pass the test to save.</span>
+      </div>
     </div>
 
   </div>
@@ -2276,6 +2206,8 @@
   <div class="emoji-picker-list" id="emoji-picker-list"></div>
 </div>
 
+<script src="penpal-ai-config.js"></script>
 <script src="penpal-settings.js"></script>
+<script src="penpal-settings-models.js"></script>
 </body>
 </html>
