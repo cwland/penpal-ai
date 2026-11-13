@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
-  "notes": "AI setup is now one simple list: My Models. Add a model by picking a provider, validating your key, choosing from the provider's live model list (with suggestions), and testing it. Add several and drag them into order: the top one is your default, and PenPal automatically falls back to the next if one doesn't respond. Your existing setup is converted automatically.",
+  "version": "1.5.1",
+  "notes": "1.5.1: Fixed stray <text_to_edit> tags showing up in replies from small local models such as Apple's on-device model. AI setup is now one simple list: My Models. Add a model by picking a provider, validating your key, choosing from the provider's live model list (with suggestions), and testing it. Add several and drag them into order: the top one is your default, and PenPal automatically falls back to the next if one doesn't respond. Your existing setup is converted automatically.",
   "downloadUrl": "https://github.com/cwland/penpal-ai/releases"
 }
